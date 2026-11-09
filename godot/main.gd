@@ -20,6 +20,12 @@ var coins := 100
 var pose_index := 0
 var pose_names := ["На коленях", "Стоя", "Сидя", "Отдыхает", "Со спины"]
 var pose_offsets := [Vector2(0, 0), Vector2(0, -90), Vector2(0, 45), Vector2(0, 90), Vector2(0, 0)]
+var pose_offset_current := Vector2.ZERO
+var pose_offset_from := Vector2.ZERO
+var pose_offset_to := Vector2.ZERO
+var pose_blend := 1.0
+var expression := "soft"
+var expression_timer := 0.0
 var manicure := 0
 var pedicure := 0
 var action_text := "Привет, мой ♡ Ты пришёл?~"
@@ -45,6 +51,14 @@ func _process(delta: float) -> void:
 		blink = 0.18
 		blink_cooldown = 2.8 + 1.7 * absf(sin(time_passed * 0.73))
 	reaction = maxf(0.0, reaction - delta)
+	if pose_blend < 1.0:
+		pose_blend = minf(1.0, pose_blend + delta / 0.55)
+		var eased := pose_blend * pose_blend * (3.0 - 2.0 * pose_blend)
+		pose_offset_current = pose_offset_from.lerp(pose_offset_to, eased)
+	if expression_timer > 0.0:
+		expression_timer -= delta
+		if expression_timer <= 0.0:
+			expression = "soft"
 	if action_timer > 0:
 		action_timer -= delta
 		if action_timer <= 0:
@@ -95,7 +109,7 @@ func _draw_room() -> void:
 func _draw_character() -> void:
 	var breath := sin(time_passed * 1.65)
 	var bob := sin(time_passed * 2.2) * 2.5
-	var p: Vector2 = Vector2(350, 675) + pose_offsets[pose_index] + Vector2(0, bob)
+	var p: Vector2 = Vector2(350, 675) + pose_offset_current + Vector2(0, bob)
 	var sway := sin(time_passed * 0.9) * 5.0
 	var arm_swing := sin(time_passed * 1.45) * 7.0
 	var head_float := sin(time_passed * 1.25 + 0.5) * 2.2
@@ -137,9 +151,12 @@ func _draw_character() -> void:
 	draw_line(p + Vector2(-73, -5), p + Vector2(-78 + sway * 0.35, 66), HAIR, 15, true)
 	draw_line(p + Vector2(72, -8), p + Vector2(78 + sway * 0.35, 62), HAIR, 15, true)
 	# eyes, freckles, mouth
-	if blink > 0:
+	if blink > 0 or expression == "sleepy":
 		draw_line(p + Vector2(-43, -5), p + Vector2(-12, -5), INK, 5)
 		draw_line(p + Vector2(15, -5), p + Vector2(45, -5), INK, 5)
+		if expression == "sleepy":
+			draw_arc(p + Vector2(-27, -9), 17, PI + 0.15, TAU - 0.15, 16, INK, 3)
+			draw_arc(p + Vector2(28, -9), 17, PI + 0.15, TAU - 0.15, 16, INK, 3)
 	else:
 		_draw_ellipse(p + Vector2(-28, -4), Vector2(18, 10), Color("#f3d3b9"))
 		_draw_ellipse(p + Vector2(28, -4), Vector2(18, 10), Color("#f3d3b9"))
@@ -150,8 +167,16 @@ func _draw_character() -> void:
 		draw_circle(p + Vector2(30, -4) + gaze, 3, INK)
 	for i in range(5):
 		draw_circle(p + Vector2(-35 + i * 13, 17 + (i % 2) * 5), 2, Color("#a85c4d"))
-	var smile := 13.0 + (5.0 if reaction > 0.0 else 0.0)
-	draw_arc(p + Vector2(0, 27), smile, 0.15, PI - 0.15, 18, Color("#8b3946"), 4)
+	if expression == "surprised":
+		draw_circle(p + Vector2(0, 28), 7, Color("#8b3946"))
+	elif expression == "shy":
+		draw_arc(p + Vector2(0, 28), 10, 0.15, PI - 0.15, 18, Color("#8b3946"), 3)
+	else:
+		var smile := 13.0 + (5.0 if reaction > 0.0 or expression == "happy" else 0.0)
+		draw_arc(p + Vector2(0, 27), smile, 0.15, PI - 0.15, 18, Color("#8b3946"), 4)
+	if expression == "shy" or reaction > 0.0:
+		draw_circle(p + Vector2(-52, 19), 7, Color("#e77c83", 0.42))
+		draw_circle(p + Vector2(52, 19), 7, Color("#e77c83", 0.42))
 	# hands and manicure details
 	_draw_hand(p + Vector2(-155, 275), manicure)
 	_draw_hand(p + Vector2(155, 275), manicure)
@@ -268,6 +293,11 @@ func _handle_tap(pos: Vector2) -> void:
 
 func _next_pose() -> void:
 	pose_index = (pose_index + 1) % pose_names.size()
+	pose_offset_from = pose_offset_current
+	pose_offset_to = pose_offsets[pose_index]
+	pose_blend = 0.0
+	expression = "happy"
+	expression_timer = 2.0
 	action_text = "Я устроилась: " + pose_names[pose_index] + " ♡"
 	_react(2.0)
 
@@ -282,6 +312,8 @@ func _change_pedicure() -> void:
 	_react(3.0)
 
 func _start_massage() -> void:
+	expression = "soft"
+	expression_timer = 3.0
 	massage_progress = 0.1
 	action_text = "Проведи пальцем, чтобы сделать массаж ♡"
 	energy = minf(100.0, energy + 1.0)
@@ -299,10 +331,14 @@ func _gift() -> void:
 
 func _greet() -> void:
 	action_text = "Я скучала! Расскажешь, как прошёл день? ♡"
+	expression = "shy"
+	expression_timer = 2.5
 	_react(2.0)
 
 func _react(amount: float) -> void:
 	reaction = 2.2
+	expression = "happy"
+	expression_timer = 2.0
 	mood = minf(100.0, mood + amount)
 	closeness = minf(100.0, closeness + 0.5)
 	action_timer = 5.0
