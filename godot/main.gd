@@ -107,13 +107,9 @@ func _load_game() -> void:
 
 func _process(delta: float) -> void:
 	time_passed += delta
-	_sync_world_state()
 	elapsed_game_seconds += delta
-	game_clock_fraction += delta * 2.0
-	var minute_ticks := int(game_clock_fraction)
-	if minute_ticks > 0:
-		game_minutes = (game_minutes + minute_ticks) % 1440
-		game_clock_fraction -= float(minute_ticks)
+	if not rhythm_active:
+		_sync_world_state()
 	save_clock += delta
 	if save_clock >= 12.0:
 		save_clock = 0.0
@@ -143,11 +139,12 @@ func _process(delta: float) -> void:
 		rhythm_cooldown -= delta
 		if rhythm_window <= 0.0:
 			rhythm_active = false
-			action_text = "Раунд окончен! Попаданий: %d из 5 ♡" % rhythm_score
+			action_text = "Раунд окончен! Попаданий: %d ♡" % rhythm_score
 			if rhythm_score >= 3:
 				JiaWorld.mood = minf(100.0, JiaWorld.mood + 6.0)
 				JiaWorld.affection = minf(100.0, JiaWorld.affection + 2.0)
 				JiaWorld.coins += 10
+			JiaWorld.save_world()
 			_sync_world_state()
 	interaction_pulse = maxf(0.0, interaction_pulse - delta)
 	joint_sway = sin(time_passed * 1.35) * 0.035
@@ -505,9 +502,9 @@ func _interact_with_jia() -> void:
 		action_text = "Я немного устала… Давай отдохнём? ♡"
 		expression = "sleepy"
 		return
-	energy = maxf(0.0, energy - 1.0)
-	mood = minf(100.0, mood + 1.5)
-	closeness = minf(100.0, closeness + 1.0)
+	JiaWorld.energy = maxf(0.0, JiaWorld.energy - 1.0)
+	JiaWorld.mood = minf(100.0, JiaWorld.mood + 1.5)
+	JiaWorld.affection = minf(100.0, JiaWorld.affection + 1.0)
 	_sync_world_state()
 	_react(1.5)
 
@@ -544,9 +541,10 @@ func _start_massage() -> void:
 	interaction_target = "body"
 	dragging = false
 	action_text = "Проводи пальцем по контуру, чтобы сделать массаж ♡"
-	energy = minf(100.0, energy + 1.0)
-	mood = minf(100.0, mood + 4.0)
-	closeness = minf(100.0, closeness + 1.0)
+	JiaWorld.energy = minf(100.0, JiaWorld.energy + 1.0)
+	JiaWorld.mood = minf(100.0, JiaWorld.mood + 4.0)
+	JiaWorld.affection = minf(100.0, JiaWorld.affection + 1.0)
+	_sync_world_state()
 
 func _gift() -> void:
 	if JiaWorld.consume("gift_flower"):
@@ -565,8 +563,9 @@ func _react(amount: float) -> void:
 	reaction = 2.2
 	expression = "happy"
 	expression_timer = 2.0
-	mood = minf(100.0, mood + amount)
-	closeness = minf(100.0, closeness + 0.5)
+	JiaWorld.mood = minf(100.0, JiaWorld.mood + amount)
+	JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.5)
+	_sync_world_state()
 	action_timer = 5.0
 	queue_redraw()
 
