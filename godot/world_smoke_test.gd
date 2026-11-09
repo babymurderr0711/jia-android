@@ -34,5 +34,14 @@ func _run_tests() -> void:
 	_check(clone.outfit_id == "midnight_blue", "outfit survives save/load")
 	_check(clone.nail_style == 2 and clone.toe_style == 3, "nail styles survive save/load")
 	_check(clone.music_enabled == world.music_enabled, "music preference survives save/load")
-	print("WORLD TESTS PASSED")
+	var rig_scene: PackedScene = load("res://JiaSkeletonRig.tscn")
+	var rig: JiaSkeletonRig = rig_scene.instantiate() as JiaSkeletonRig
+	root.add_child(rig)
+	await process_frame
+	_check(rig.bones.size() >= 18, "skeleton contains full joint hierarchy")
+	rig.set_pose(2)
+	rig.set_appearance(Color("#5b1c38"), 2, 3, "shy", 1)
+	await process_frame
+	_check(rig.pose == 2, "skeleton accepts a pose transition")
+	print("WORLD AND RIG TESTS PASSED")
 	quit(0)
