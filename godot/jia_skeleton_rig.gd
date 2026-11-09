@@ -16,6 +16,7 @@ var expression := "soft"
 var manicure := 0
 var pedicure := 0
 var outfit_color := CLOTH
+var wardrobe_style := 0
 var outfit_surface: Polygon2D
 var outfit_top_surface: Polygon2D
 var nail_surfaces: Array[Polygon2D] = []
@@ -33,15 +34,18 @@ func _process(delta: float) -> void:
 func set_pose(value: int) -> void:
 	pose = posmod(value, 5)
 
-func set_appearance(outfit: Color, hands: int, feet: int, face: String) -> void:
+func set_appearance(outfit: Color, hands: int, feet: int, face: String, outfit_style: int = 0) -> void:
 	outfit_color = outfit
 	manicure = posmod(hands, 4)
 	pedicure = posmod(feet, 4)
 	expression = face
+	wardrobe_style = posmod(outfit_style, 4)
 	if is_instance_valid(outfit_surface):
 		outfit_surface.color = outfit_color
+		outfit_surface.polygon = _garment_shape()
 	if is_instance_valid(outfit_top_surface):
 		outfit_top_surface.color = outfit_color
+		outfit_top_surface.polygon = _top_shape()
 	for i in range(nail_surfaces.size()):
 		nail_surfaces[i].color = NAIL_COLORS[manicure if i < 4 else pedicure]
 
@@ -69,11 +73,11 @@ func _build_skeleton() -> void:
 	_bone("Ankle_R", r_knee, Vector2(12, 105))
 	_add_surface(torso, PackedVector2Array([Vector2(-52,-10),Vector2(52,-10),Vector2(68,112),Vector2(42,145),Vector2(-42,145),Vector2(-68,112)]), SKIN)
 	outfit_top_surface = Polygon2D.new()
-	outfit_top_surface.polygon = PackedVector2Array([Vector2(-51,4),Vector2(-38,-5),Vector2(0,16),Vector2(38,-5),Vector2(51,4),Vector2(42,80),Vector2(0,66),Vector2(-42,80)])
+	outfit_top_surface.polygon = _top_shape()
 	outfit_top_surface.color = outfit_color
 	torso.add_child(outfit_top_surface)
 	outfit_surface = Polygon2D.new()
-	outfit_surface.polygon = PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(58,72),Vector2(-58,72)])
+	outfit_surface.polygon = _garment_shape()
 	outfit_surface.color = outfit_color
 	pelvis.add_child(outfit_surface)
 	_add_surface(neck, PackedVector2Array([Vector2(-16,-8),Vector2(16,-8),Vector2(16,30),Vector2(-16,30)]), SKIN)
@@ -111,6 +115,28 @@ func _bone(bone_name: String, parent: Node, offset: Vector2) -> Bone2D:
 	parent.add_child(bone)
 	bones[bone_name] = bone
 	return bone
+
+func _top_shape() -> PackedVector2Array:
+	match wardrobe_style:
+		1:
+			return PackedVector2Array([Vector2(-51,4),Vector2(-38,-5),Vector2(0,16),Vector2(38,-5),Vector2(51,4),Vector2(42,92),Vector2(0,78),Vector2(-42,92)])
+		2:
+			return PackedVector2Array([Vector2(-51,0),Vector2(-38,-6),Vector2(0,12),Vector2(38,-6),Vector2(51,0),Vector2(50,112),Vector2(-50,112)])
+		3:
+			return PackedVector2Array([Vector2(-51,0),Vector2(-38,-6),Vector2(0,12),Vector2(38,-6),Vector2(51,0),Vector2(58,145),Vector2(-58,145)])
+		_:
+			return PackedVector2Array([Vector2(-51,4),Vector2(-38,-5),Vector2(0,16),Vector2(38,-5),Vector2(51,4),Vector2(42,80),Vector2(0,66),Vector2(-42,80)])
+
+func _garment_shape() -> PackedVector2Array:
+	match wardrobe_style:
+		1:
+			return PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(58,84),Vector2(0,95),Vector2(-58,84)])
+		2:
+			return PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(52,62),Vector2(0,72),Vector2(-52,62)])
+		3:
+			return PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(68,110),Vector2(0,125),Vector2(-68,110)])
+		_:
+			return PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(58,72),Vector2(-58,72)])
 
 func _add_surface(parent: Node, points: PackedVector2Array, color: Color) -> void:
 	var polygon := Polygon2D.new()
