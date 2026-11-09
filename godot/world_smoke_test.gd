@@ -9,7 +9,7 @@ func _check(condition: bool, label: String) -> void:
 		quit(1)
 
 func _run_tests() -> void:
-	var world := load("res://world_simulation.gd").new()
+	var world: JiaWorldSimulation = load("res://world_simulation.gd").new() as JiaWorldSimulation
 	root.add_child(world)
 	await process_frame
 	world.hunger = 10.0
@@ -28,7 +28,7 @@ func _run_tests() -> void:
 	world.rest(30)
 	_check(world.minutes == posmod(old_minutes + 30, 1440), "rest advances in-game time")
 	world.save_world()
-	var clone := load("res://world_simulation.gd").new()
+	var clone: JiaWorldSimulation = load("res://world_simulation.gd").new() as JiaWorldSimulation
 	root.add_child(clone)
 	await process_frame
 	_check(clone.outfit_id == "midnight_blue", "outfit survives save/load")
