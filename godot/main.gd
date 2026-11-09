@@ -47,6 +47,7 @@ var hand_reach := 0.0
 var joint_sway := 0.0
 var save_clock := 0.0
 var game_minutes := 1367
+var game_clock_fraction := 0.0
 var elapsed_game_seconds := 0.0
 
 func _ready() -> void:
@@ -86,7 +87,11 @@ func _load_game() -> void:
 func _process(delta: float) -> void:
 	time_passed += delta
 	elapsed_game_seconds += delta
-	game_minutes = (game_minutes + int(delta * 2.0)) % 1440
+	game_clock_fraction += delta * 2.0
+	var minute_ticks := int(game_clock_fraction)
+	if minute_ticks > 0:
+		game_minutes = (game_minutes + minute_ticks) % 1440
+		game_clock_fraction -= float(minute_ticks)
 	save_clock += delta
 	if save_clock >= 12.0:
 		save_clock = 0.0
