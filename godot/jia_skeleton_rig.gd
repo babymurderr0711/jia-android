@@ -16,6 +16,9 @@ var expression := "soft"
 var manicure := 0
 var pedicure := 0
 var outfit_color := CLOTH
+var outfit_surface: Polygon2D
+var nail_surfaces: Array[Polygon2D] = []
+const NAIL_COLORS := [Color("#17121d"), Color("#e83e72"), Color("#f4c2d9"), Color("#9d1d45")]
 
 func _ready() -> void:
 	_build_skeleton()
@@ -34,6 +37,10 @@ func set_appearance(outfit: Color, hands: int, feet: int, face: String) -> void:
 	manicure = posmod(hands, 4)
 	pedicure = posmod(feet, 4)
 	expression = face
+	if is_instance_valid(outfit_surface):
+		outfit_surface.color = outfit_color
+	for i in range(nail_surfaces.size()):
+		nail_surfaces[i].color = NAIL_COLORS[manicure if i < 4 else pedicure]
 
 func _build_skeleton() -> void:
 	skeleton = Skeleton2D.new()
@@ -58,7 +65,10 @@ func _build_skeleton() -> void:
 	var r_knee := _bone("Knee_R", r_hip, Vector2(28, 115))
 	_bone("Ankle_R", r_knee, Vector2(12, 105))
 	_add_surface(torso, PackedVector2Array([Vector2(-52,-10),Vector2(52,-10),Vector2(68,112),Vector2(42,145),Vector2(-42,145),Vector2(-68,112)]), SKIN)
-	_add_surface(pelvis, PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(58,72),Vector2(-58,72)]), outfit_color)
+	outfit_surface = Polygon2D.new()
+	outfit_surface.polygon = PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(58,72),Vector2(-58,72)])
+	outfit_surface.color = outfit_color
+	pelvis.add_child(outfit_surface)
 	_add_surface(neck, PackedVector2Array([Vector2(-16,-8),Vector2(16,-8),Vector2(16,30),Vector2(-16,30)]), SKIN)
 	_add_surface(head, _ellipse(Vector2.ZERO, Vector2(48,58)), SKIN)
 	_add_surface(head.get_node("Hair") as Bone2D, _ellipse(Vector2(0,-31),Vector2(51,29)), HAIR)
@@ -67,6 +77,10 @@ func _build_skeleton() -> void:
 	for pair in [[l_hip,l_knee],[l_knee,l_knee.get_node("Ankle_L")],[r_hip,r_knee],[r_knee,r_knee.get_node("Ankle_R")]]:
 		_add_bone_capsule(pair[0], pair[1], 25.0, SKIN)
 	_add_face(head)
+	_add_nails(bones["Wrist_L"])
+	_add_nails(bones["Wrist_R"])
+	_add_nails(bones["Ankle_L"], true)
+	_add_nails(bones["Ankle_R"], true)
 
 func _bone(bone_name: String, parent: Node, offset: Vector2) -> Bone2D:
 	var bone := Bone2D.new()
@@ -105,6 +119,17 @@ func _add_face(head: Bone2D) -> void:
 	mouth.width = 2.5
 	mouth.default_color = Color("#8b3946")
 	head.add_child(mouth)
+
+func _add_nails(parent: Bone2D, toes: bool = false) -> void:
+	var count := 5 if toes else 4
+	for i in range(count):
+		var nail := Polygon2D.new()
+		var x := float(i - 2) * (5.0 if toes else 6.0)
+		var y := 5.0 if toes else 9.0
+		nail.polygon = _ellipse(Vector2(x, y), Vector2(2.2, 3.8) if toes else Vector2(2.8, 4.8))
+		nail.color = NAIL_COLORS[pedicure if toes else manicure]
+		parent.add_child(nail)
+		nail_surfaces.append(nail)
 
 func _ellipse(center: Vector2, radius: Vector2) -> PackedVector2Array:
 	var points := PackedVector2Array()
