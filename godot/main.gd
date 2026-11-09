@@ -49,6 +49,12 @@ var save_clock := 0.0
 var game_minutes := 1367
 var game_clock_fraction := 0.0
 var elapsed_game_seconds := 0.0
+var outfit_index := 0
+var rhythm_active := false
+var rhythm_score := 0
+var rhythm_window := 0.0
+var rhythm_target := Vector2(360, 520)
+var rhythm_cooldown := 0.0
 
 func _ready() -> void:
 	_load_game()
@@ -120,6 +126,17 @@ func _process(delta: float) -> void:
 			action_text = "Мне нравится, когда ты рядом ♡"
 	if massage_progress > 0:
 		massage_progress = maxf(0.0, massage_progress - delta * 0.035)
+	if rhythm_active:
+		rhythm_window -= delta
+		rhythm_cooldown -= delta
+		if rhythm_window <= 0.0:
+			rhythm_active = false
+			action_text = "Раунд окончен! Попаданий: %d из 5 ♡" % rhythm_score
+			if rhythm_score >= 3:
+				JiaWorld.mood = minf(100.0, JiaWorld.mood + 6.0)
+				JiaWorld.affection = minf(100.0, JiaWorld.affection + 2.0)
+				JiaWorld.coins += 10
+			_sync_world_state()
 	interaction_pulse = maxf(0.0, interaction_pulse - delta)
 	joint_sway = sin(time_passed * 1.35) * 0.035
 	hand_reach = lerpf(hand_reach, 1.0 if dragging else 0.0, minf(1.0, delta * 5.0))
@@ -210,7 +227,9 @@ func _draw_character() -> void:
 	draw_colored_polygon(body, SKIN)
 	draw_polyline(body, INK, 7, true)
 	# dark lace top
-	draw_colored_polygon(PackedVector2Array([p + Vector2(-68, 65), p + Vector2(68, 65), p + Vector2(55, 175), p + Vector2(0, 150), p + Vector2(-55, 175)]), Color("#24111f"))
+	var outfit_colors := [Color("#24111f"), Color("#5b1c38"), Color("#27344b"), Color("#6b4a35")]
+	var outfit_color: Color = outfit_colors[outfit_index % outfit_colors.size()]
+	draw_colored_polygon(PackedVector2Array([p + Vector2(-68, 65), p + Vector2(68, 65), p + Vector2(55, 175), p + Vector2(0, 150), p + Vector2(-55, 175)]), outfit_color)
 	draw_line(p + Vector2(-55, 70), p + Vector2(-90, 0), INK, 6)
 	draw_line(p + Vector2(55, 70), p + Vector2(90, 0), INK, 6)
 	# neck and face
@@ -312,7 +331,7 @@ func _draw_ui() -> void:
 	_draw_stat("♥ Близость", closeness, 1105)
 	_draw_stat("★ Энергия", energy, 1170)
 	# bottom nav
-	var nav := ["Редактор", "Ногти", "Педикюр", "Массаж"]
+	var nav := ["Образ", "Ногти", "Педикюр", "Ритм ♡"]
 	for i in range(4):
 		_button(Rect2(18 + i * 176, 890, 164, 76), nav[i])
 	if pose_editor:
@@ -322,6 +341,13 @@ func _draw_ui() -> void:
 		_button(Rect2(550, 220, 125, 52), "Руки +")
 		_button(Rect2(405, 285, 125, 52), "Ноги −")
 		_button(Rect2(550, 285, 125, 52), "Ноги +")
+	if rhythm_active:
+		_panel(Rect2(385, 170, 310, 190))
+		draw_string(ThemeDB.fallback_font, Vector2(410, 205), "Поймай ритм: %d/5" % rhythm_score, HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
+		draw_string(ThemeDB.fallback_font, Vector2(410, 240), "Осталось: %d сек" % ceili(rhythm_window), HORIZONTAL_ALIGNMENT_LEFT, -1, 19, PALE)
+		draw_circle(rhythm_target, 38, Color("#f18abd"))
+		draw_circle(rhythm_target, 25, Color("#ffd0e7"))
+		draw_string(ThemeDB.fallback_font, rhythm_target + Vector2(-10, 9), "♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 25, INK)
 	if interaction_target != "none":
 		_panel(Rect2(315, 1040, 380, 115))
 		draw_string(ThemeDB.fallback_font, Vector2(338, 1080), "Массаж: " + str(int(massage_progress * 100.0)) + "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
@@ -387,10 +413,10 @@ func _handle_tap(pos: Vector2) -> void:
 	if pos.y > 890 and pos.y < 980:
 		var idx := clampi(int(pos.x / 176.0), 0, 3)
 		match idx:
-			0: pose_editor = not pose_editor
+			0: _change_outfit()
 			1: _change_manicure()
 			2: _change_pedicure()
-			3: _start_massage()
+			3: _start_rhythm_game()
 	elif pos.x > 495 and pos.y >= 400 and pos.y < 768:
 		var idx := int((pos.y - 400) / 92)
 		match idx:
@@ -404,6 +430,14 @@ func _handle_tap(pos: Vector2) -> void:
 		else:
 			leg_pose = clampf(leg_pose + (-0.15 if pos.x < 540 else 0.15), -1.0, 1.0)
 		action_text = "Подбираем положение суставов ♡"
+	elif rhythm_active:
+		if pos.distance_to(rhythm_target) <= 48.0 and rhythm_cooldown <= 0.0:
+			rhythm_score += 1
+			rhythm_cooldown = 0.18
+			rhythm_target = Vector2(410.0 + randf_range(-80.0, 80.0), 500.0 + randf_range(-70.0, 70.0))
+			action_text = "Точно в такт! Ещё раз ♡"
+		else:
+			action_text = "Чуть мимо — следи за сердечком"
 	elif pos.x > 190 and pos.x < 490 and pos.y > 360 and pos.y < 850:
 		_interact_with_jia()
 	elif pos.x > 250 and pos.y < 300:
@@ -497,3 +531,18 @@ func _on_world_event(_event_id: String, title: String, line: String) -> void:
 	expression_timer = 4.0
 	action_timer = 8.0
 	queue_redraw()
+
+func _change_outfit() -> void:
+	outfit_index = (outfit_index + 1) % 4
+	var outfit_ids := ["home_black", "burgundy_lace", "midnight_blue", "warm_satin"]
+	JiaWorld.set_outfit(outfit_ids[outfit_index])
+	action_text = ["Чёрный домашний образ ♡", "Бордовый комплект — нравится?", "Тёмно-синий вечерний образ", "Мягкий тёплый оттенок"][outfit_index]
+	_react(1.5)
+
+func _start_rhythm_game() -> void:
+	rhythm_active = true
+	rhythm_score = 0
+	rhythm_window = 12.0
+	rhythm_cooldown = 0.0
+	rhythm_target = Vector2(410.0, 500.0)
+	action_text = "Нажимай на сердечко, когда оно появляется! 12 секунд ♡"
