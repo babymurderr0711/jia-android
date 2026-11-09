@@ -89,7 +89,7 @@ func _draw_room() -> void:
 
 func _draw_character() -> void:
 	var bob := sin(time_passed * 2.2) * 3.0
-	var p := Vector2(350, 675) + pose_offsets[pose_index] + Vector2(0, bob)
+	var p: Vector2 = Vector2(350, 675) + pose_offsets[pose_index] + Vector2(0, bob)
 	var sway := sin(time_passed * 1.1) * 7.0
 	# pose-dependent silhouette; articulated limbs and joints are redrawn every frame
 	if pose_index == 1:
@@ -129,7 +129,7 @@ func _draw_character() -> void:
 		draw_line(p + Vector2(-43, -5), p + Vector2(-12, -5), INK, 5)
 		draw_line(p + Vector2(15, -5), p + Vector2(45, -5), INK, 5)
 	else:
-		draw_ellipse(p + Vector2(-28, -4), Vector2(18, 10), Color("#f3d3b9"))
+		_draw_ellipse(p + Vector2(-28, -4), Vector2(18, 10), Color("#f3d3b9"))
 		draw_ellipse(p + Vector2(28, -4), Vector2(18, 10), Color("#f3d3b9"))
 		draw_circle(p + Vector2(-25, -4), 6, Color("#6a7549"))
 		draw_circle(p + Vector2(30, -4), 6, Color("#6a7549"))
