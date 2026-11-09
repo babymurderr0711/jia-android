@@ -114,14 +114,29 @@ func _build_skeleton() -> void:
 	_add_nails(bones["Wrist_R"])
 	_add_nails(bones["Ankle_L"], true)
 	_add_nails(bones["Ankle_R"], true)
-	# Build the complete Bone2D hierarchy before entering the scene tree so
-	# Skeleton2D can calculate bone lengths from their actual child joints.
+	# Set explicit rest poses and lengths before Skeleton2D enters the scene tree.
+	# Leaf bones receive a minimal display length; all joint lengths follow their child.
+	for bone_name in bones:
+		var current: Bone2D = bones[bone_name]
+		current.set_autocalculate_length_and_angle(false)
+		var child_bone: Bone2D
+		for child in current.get_children():
+			if child is Bone2D:
+				child_bone = child
+				break
+		if child_bone != null:
+			current.set_length(child_bone.position.length())
+			current.set_bone_angle(child_bone.position.angle())
+		else:
+			current.set_length(1.0)
+		current.rest = current.transform
 	add_child(skeleton)
 
 func _bone(bone_name: String, parent: Node, offset: Vector2) -> Bone2D:
 	var bone := Bone2D.new()
 	bone.name = bone_name
 	bone.position = offset
+	bone.rest = bone.transform
 	parent.add_child(bone)
 	bones[bone_name] = bone
 	return bone
