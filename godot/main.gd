@@ -63,6 +63,7 @@ var pending_touch_zone := "body"
 @onready var ambient_music: JiaAmbientMusic = $AmbientMusic
 var settings_open := false
 var dialogue_index := 0
+var touch_cooldown := 0.0
 const DIALOGUE_LINES := [
 	"Как прошёл твой день? Я внимательно слушаю ♡",
 	"Мне нравится, когда мы проводим время вместе",
@@ -129,6 +130,7 @@ func _process(delta: float) -> void:
 		blink = 0.18
 		blink_cooldown = 2.8 + 1.7 * absf(sin(time_passed * 0.73))
 	reaction = maxf(0.0, reaction - delta)
+	touch_cooldown = maxf(0.0, touch_cooldown - delta)
 	if pose_blend < 1.0:
 		pose_blend = minf(1.0, pose_blend + delta / 0.55)
 		var eased := pose_blend * pose_blend * (3.0 - 2.0 * pose_blend)
@@ -571,6 +573,9 @@ func _handle_tap(pos: Vector2) -> void:
 		_greet()
 
 func _interact_with_jia() -> void:
+	if touch_cooldown > 0.0:
+		return
+	touch_cooldown = 0.55
 	var response: Dictionary = JiaWorld.touch_response(pending_touch_zone)
 	action_text = str(response.line)
 	expression = str(response.expression)
