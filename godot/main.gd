@@ -52,6 +52,8 @@ var elapsed_game_seconds := 0.0
 
 func _ready() -> void:
 	_load_game()
+	JiaWorld.event_started.connect(_on_world_event)
+	_sync_world_state()
 	get_viewport().size_changed.connect(queue_redraw)
 	queue_redraw()
 
@@ -86,6 +88,7 @@ func _load_game() -> void:
 
 func _process(delta: float) -> void:
 	time_passed += delta
+	_sync_world_state()
 	elapsed_game_seconds += delta
 	game_clock_fraction += delta * 2.0
 	var minute_ticks := int(game_clock_fraction)
@@ -326,13 +329,13 @@ func _draw_ui() -> void:
 	draw_string(ThemeDB.fallback_font, Vector2(540, 1225), "Монеты: " + str(coins), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, PALE)
 
 func _clock_label() -> String:
-	var hour := int(game_minutes / 60)
-	var minute := game_minutes % 60
+	var hour := int(JiaWorld.minutes / 60)
+	var minute := JiaWorld.minutes % 60
 	return "%02d:%02d ☾" % [hour, minute]
 
 func _day_label() -> String:
 	var day_number := 1 + int(elapsed_game_seconds / 900.0)
-	return "День %d · Jia's Place" % day_number
+	return "День %d · Jia's Place" % JiaWorld.day
 
 func _panel(r: Rect2, fill: Color = Color("#281827")) -> void:
 	draw_rect(r, INK)
@@ -406,6 +409,9 @@ func _handle_tap(pos: Vector2) -> void:
 		_greet()
 
 func _interact_with_jia() -> void:
+	var response: Dictionary = JiaWorld.touch_response("body")
+	action_text = str(response.line)
+	expression = str(response.expression)
 	if energy < 12.0:
 		action_text = "Я немного устала… Давай отдохнём? ♡"
 		expression = "sleepy"
@@ -413,7 +419,7 @@ func _interact_with_jia() -> void:
 	energy = maxf(0.0, energy - 1.0)
 	mood = minf(100.0, mood + 1.5)
 	closeness = minf(100.0, closeness + 1.0)
-	action_text = "Хи-хи, щекотно! Я рада, что ты рядом ♡"
+	_sync_world_state()
 	_react(1.5)
 
 func _next_pose() -> void:
@@ -472,4 +478,20 @@ func _react(amount: float) -> void:
 	mood = minf(100.0, mood + amount)
 	closeness = minf(100.0, closeness + 0.5)
 	action_timer = 5.0
+	queue_redraw()
+
+func _sync_world_state() -> void:
+	mood = JiaWorld.mood
+	closeness = JiaWorld.affection
+	energy = JiaWorld.energy
+	coins = JiaWorld.coins
+	game_minutes = JiaWorld.minutes
+	manicure = JiaWorld.nail_style % 4
+	pedicure = JiaWorld.toe_style % 4
+
+func _on_world_event(_event_id: String, title: String, line: String) -> void:
+	action_text = title + ": " + line
+	expression = "happy"
+	expression_timer = 4.0
+	action_timer = 8.0
 	queue_redraw()
