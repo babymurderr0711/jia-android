@@ -69,7 +69,7 @@ jobs:
           set -euxo pipefail
           godot --headless --path godot --editor --quit --verbose
           godot --headless --path godot --check-only --script res://main.gd
-          godot --headless --path godot --editor --quit --verbose --path godot --export-debug "Android" /tmp/Jia-Place-validation.apk || {
+          godot --headless --path godot --editor --quit --verbose --export-debug "Android" /tmp/Jia-Place-validation.apk || {
             echo "::error::Godot rejected the Android export preset. Full verbose output above."
             exit 1
           }
