@@ -25,7 +25,9 @@ var pedicure := 0
 var action_text := "Привет, мой ♡ Ты пришёл?~"
 var action_timer := 0.0
 var blink := 0.0
+var blink_cooldown := 2.4
 var time_passed := 0.0
+var reaction := 0.0
 var selected_tab := "Дом"
 var massage_progress := 0.0
 var dragging := false
@@ -38,8 +40,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	time_passed += delta
 	blink = maxf(0.0, blink - delta)
-	if int(time_passed) % 5 == 0 and fposmod(time_passed, 5.0) < delta:
-		blink = 0.16
+	blink_cooldown -= delta
+	if blink_cooldown <= 0.0:
+		blink = 0.18
+		blink_cooldown = 2.8 + 1.7 * absf(sin(time_passed * 0.73))
+	reaction = maxf(0.0, reaction - delta)
 	if action_timer > 0:
 		action_timer -= delta
 		if action_timer <= 0:
@@ -88,9 +93,13 @@ func _draw_room() -> void:
 	draw_circle(Vector2(620, 602), 5, PINK)
 
 func _draw_character() -> void:
-	var bob := sin(time_passed * 2.2) * 3.0
+	var breath := sin(time_passed * 1.65)
+	var bob := sin(time_passed * 2.2) * 2.5
 	var p: Vector2 = Vector2(350, 675) + pose_offsets[pose_index] + Vector2(0, bob)
-	var sway := sin(time_passed * 1.1) * 7.0
+	var sway := sin(time_passed * 0.9) * 5.0
+	var arm_swing := sin(time_passed * 1.45) * 7.0
+	var head_float := sin(time_passed * 1.25 + 0.5) * 2.2
+	p.y += head_float
 	# pose-dependent silhouette; articulated limbs and joints are redrawn every frame
 	if pose_index == 1:
 		_draw_limb(p + Vector2(-35, 40), p + Vector2(-95, 185), 25)
@@ -103,12 +112,12 @@ func _draw_character() -> void:
 		_draw_limb(p + Vector2(-25, 190), p + Vector2(-150, 250), 42)
 		_draw_limb(p + Vector2(25, 190), p + Vector2(150, 250), 42)
 	else:
-		_draw_limb(p + Vector2(-45, 115), p + Vector2(-155, 275), 42)
-		_draw_limb(p + Vector2(45, 115), p + Vector2(155, 275), 42)
+		_draw_limb(p + Vector2(-45, 115), p + Vector2(-155 + arm_swing, 275 + arm_swing * 0.35), 42)
+		_draw_limb(p + Vector2(45, 115), p + Vector2(155 - arm_swing, 275 - arm_swing * 0.35), 42)
 		_draw_limb(p + Vector2(-90, 250), p + Vector2(-15, 375), 54)
 		_draw_limb(p + Vector2(90, 250), p + Vector2(15, 375), 54)
 	# torso
-	var body := PackedVector2Array([p + Vector2(-75, 30), p + Vector2(75, 30), p + Vector2(105, 210), p + Vector2(60, 285), p + Vector2(-60, 285), p + Vector2(-105, 210)])
+	var body := PackedVector2Array([p + Vector2(-75, 30), p + Vector2(75, 30), p + Vector2(105, 210 + breath * 2.0), p + Vector2(60, 285 + breath * 1.5), p + Vector2(-60, 285 + breath * 1.5), p + Vector2(-105, 210 + breath * 2.0)])
 	draw_colored_polygon(body, SKIN)
 	draw_polyline(body, INK, 7, true)
 	# dark lace top
@@ -122,8 +131,11 @@ func _draw_character() -> void:
 	# hair cap and side locks
 	draw_colored_polygon(PackedVector2Array([p + Vector2(-78, -15), p + Vector2(-65, -90), p + Vector2(-15, -115), p + Vector2(48, -95), p + Vector2(82, -25), p + Vector2(72, 45), p + Vector2(55, 15), p + Vector2(-55, 18)]), HAIR)
 	draw_polyline(PackedVector2Array([p + Vector2(-78, -15), p + Vector2(-65, -90), p + Vector2(-15, -115), p + Vector2(48, -95), p + Vector2(82, -25)]), INK, 7, true)
-	# fringe
-	draw_colored_polygon(PackedVector2Array([p + Vector2(-55, -60), p + Vector2(-8, -90), p + Vector2(5, -38), p + Vector2(35, -78), p + Vector2(58, -22), p + Vector2(15, -8), p + Vector2(-30, -12)]), Color("#c65a3b"))
+	# fringe and softly swaying side locks
+	var fringe_shift := sin(time_passed * 1.05) * 2.5
+	draw_colored_polygon(PackedVector2Array([p + Vector2(-55, -60), p + Vector2(-8, -90), p + Vector2(5 + fringe_shift, -38), p + Vector2(35 + fringe_shift, -78), p + Vector2(58, -22), p + Vector2(15, -8), p + Vector2(-30, -12)]), Color("#c65a3b"))
+	draw_line(p + Vector2(-73, -5), p + Vector2(-78 + sway * 0.35, 66), HAIR, 15, true)
+	draw_line(p + Vector2(72, -8), p + Vector2(78 + sway * 0.35, 62), HAIR, 15, true)
 	# eyes, freckles, mouth
 	if blink > 0:
 		draw_line(p + Vector2(-43, -5), p + Vector2(-12, -5), INK, 5)
@@ -131,13 +143,15 @@ func _draw_character() -> void:
 	else:
 		_draw_ellipse(p + Vector2(-28, -4), Vector2(18, 10), Color("#f3d3b9"))
 		_draw_ellipse(p + Vector2(28, -4), Vector2(18, 10), Color("#f3d3b9"))
-		draw_circle(p + Vector2(-25, -4), 6, Color("#6a7549"))
-		draw_circle(p + Vector2(30, -4), 6, Color("#6a7549"))
-		draw_circle(p + Vector2(-25, -4), 3, INK)
-		draw_circle(p + Vector2(30, -4), 3, INK)
+		var gaze := Vector2(sin(time_passed * 0.42) * 2.0, sin(time_passed * 0.7) * 1.0)
+		draw_circle(p + Vector2(-25, -4) + gaze, 6, Color("#6a7549"))
+		draw_circle(p + Vector2(30, -4) + gaze, 6, Color("#6a7549"))
+		draw_circle(p + Vector2(-25, -4) + gaze, 3, INK)
+		draw_circle(p + Vector2(30, -4) + gaze, 3, INK)
 	for i in range(5):
 		draw_circle(p + Vector2(-35 + i * 13, 17 + (i % 2) * 5), 2, Color("#a85c4d"))
-	draw_arc(p + Vector2(0, 29), 12, 0.2, PI - 0.2, 16, Color("#8b3946"), 4)
+	var smile := 13.0 + (5.0 if reaction > 0.0 else 0.0)
+	draw_arc(p + Vector2(0, 27), smile, 0.15, PI - 0.15, 18, Color("#8b3946"), 4)
 	# hands and manicure details
 	_draw_hand(p + Vector2(-155, 275), manicure)
 	_draw_hand(p + Vector2(155, 275), manicure)
@@ -145,7 +159,10 @@ func _draw_character() -> void:
 	_draw_foot(p + Vector2(-15, 375), pedicure)
 	_draw_foot(p + Vector2(15, 375), pedicure)
 	# floating heart / reaction
-	draw_string(ThemeDB.fallback_font, p + Vector2(135, -105 + sin(time_passed * 2) * 5), "♥", HORIZONTAL_ALIGNMENT_LEFT, -1, 42, PINK)
+	var heart_y := -105 + sin(time_passed * 2.0) * 5.0
+	if reaction > 0.0:
+		heart_y -= 10.0 + sin(time_passed * 8.0) * 3.0
+	draw_string(ThemeDB.fallback_font, p + Vector2(135, heart_y), "♥", HORIZONTAL_ALIGNMENT_LEFT, -1, 42, PINK)
 
 func _draw_limb(a: Vector2, b: Vector2, width: float) -> void:
 	draw_line(a, b, INK, width + 8, true)
@@ -285,6 +302,7 @@ func _greet() -> void:
 	_react(2.0)
 
 func _react(amount: float) -> void:
+	reaction = 2.2
 	mood = minf(100.0, mood + amount)
 	closeness = minf(100.0, closeness + 0.5)
 	action_timer = 5.0
