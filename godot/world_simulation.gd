@@ -120,6 +120,10 @@ func freshen_up() -> void:
 	save_world()
 
 func touch_response(zone: String) -> Dictionary:
+	if energy < 12.0:
+		return {"line":"Я немного устала… Можно просто посидим рядом?","expression":"sleepy","affection":0.0,"mood":0.0}
+	if mood < 20.0:
+		return {"line":"Сегодня я немного грущу. Побудь со мной тихонько","expression":"soft","affection":0.4,"mood":0.8}
 	var result := {"line":"Мне приятно, что ты рядом ♡","expression":"happy","affection":1.0,"mood":1.0}
 	match zone:
 		"head":
@@ -130,6 +134,9 @@ func touch_response(zone: String) -> Dictionary:
 			result = {"line":"Хи-хи, щекотно!","expression":"surprised","affection":0.8,"mood":1.5}
 		"body":
 			result = {"line":"Я расслабилась. Спасибо ♡","expression":"happy","affection":1.0,"mood":2.0}
+	if affection >= 85.0 and zone == "head":
+		result.line = "Я так люблю эти нежные прикосновения… ♡"
+		result.expression = "shy"
 	affection = clampf(affection + float(result.affection), 0.0, 100.0)
 	mood = clampf(mood + float(result.mood), 0.0, 100.0)
 	energy = clampf(energy - 0.5, 0.0, 100.0)
