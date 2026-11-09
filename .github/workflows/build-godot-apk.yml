@@ -54,7 +54,14 @@ jobs:
           EOF
 
       - name: Install Gradle Android build template
-        run: timeout 180s godot --headless --path godot --editor --install-android-build-template
+        shell: bash
+        run: |
+          set -euxo pipefail
+          SOURCE_TEMPLATE="$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip"
+          test -s "$SOURCE_TEMPLATE"
+          mkdir -p godot/android/build
+          unzip -q -o "$SOURCE_TEMPLATE" -d godot/android/build
+          test -s godot/android/build/build.gradle
 
       - name: Validate project scripts
         run: godot --headless --path godot --editor --quit
