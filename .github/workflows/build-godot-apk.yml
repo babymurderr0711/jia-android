@@ -69,7 +69,7 @@ jobs:
       - name: Export Android APK
         run: |
           mkdir -p build
-          godot --headless --path godot --export-debug "Android" build/Jia-Place-debug.apk
+          godot --verbose --headless --path godot --export-debug "Android" build/Jia-Place-debug.apk
           test -s build/Jia-Place-debug.apk
 
       - name: Upload APK
