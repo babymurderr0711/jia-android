@@ -34,7 +34,9 @@ jobs:
 
           mkdir -p "$HOME/.android"
           keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-          yes | sdkmanager --licenses >/dev/null
+          set +o pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          set -o pipefail
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
           JAVA_BIN="$(readlink -f "$(command -v java)")"
