@@ -78,6 +78,8 @@ func _ready() -> void:
 	outfit_index = maxi(0, outfit_ids.find(JiaWorld.outfit_id))
 	JiaWorld.event_started.connect(_on_world_event)
 	_sync_world_state()
+	ambient_music.set_enabled(JiaWorld.music_enabled)
+	ambient_music.set_volume(JiaWorld.music_volume)
 	character_rig.set_pose(pose_index)
 	get_viewport().size_changed.connect(queue_redraw)
 	queue_redraw()
@@ -491,10 +493,16 @@ func _handle_tap(pos: Vector2) -> void:
 	if settings_open:
 		if Rect2(380, 425, 290, 62).has_point(pos):
 			ambient_music.set_enabled(not ambient_music.enabled)
+			JiaWorld.music_enabled = ambient_music.enabled
+			JiaWorld.save_world()
 		elif Rect2(380, 505, 135, 62).has_point(pos):
 			ambient_music.set_volume(ambient_music.volume_level - 0.1)
+			JiaWorld.music_volume = ambient_music.volume_level
+			JiaWorld.save_world()
 		elif Rect2(535, 505, 135, 62).has_point(pos):
 			ambient_music.set_volume(ambient_music.volume_level + 0.1)
+			JiaWorld.music_volume = ambient_music.volume_level
+			JiaWorld.save_world()
 		elif Rect2(380, 615, 290, 52).has_point(pos):
 			settings_open = false
 		return
