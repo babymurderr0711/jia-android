@@ -38,6 +38,13 @@ var selected_tab := "Дом"
 var massage_progress := 0.0
 var dragging := false
 var drag_origin := Vector2.ZERO
+var pose_editor := false
+var arm_pose := 0.0
+var leg_pose := 0.0
+var interaction_target := "none"
+var interaction_pulse := 0.0
+var hand_reach := 0.0
+var joint_sway := 0.0
 
 func _ready() -> void:
 	get_viewport().size_changed.connect(queue_redraw)
@@ -64,7 +71,10 @@ func _process(delta: float) -> void:
 		if action_timer <= 0:
 			action_text = "Мне нравится, когда ты рядом ♡"
 	if massage_progress > 0:
-		massage_progress = maxf(0.0, massage_progress - delta * 0.08)
+		massage_progress = maxf(0.0, massage_progress - delta * 0.035)
+	interaction_pulse = maxf(0.0, interaction_pulse - delta)
+	joint_sway = sin(time_passed * 1.35) * 0.035
+	hand_reach = lerpf(hand_reach, 1.0 if dragging else 0.0, minf(1.0, delta * 5.0))
 	queue_redraw()
 
 func _draw() -> void:
@@ -114,22 +124,39 @@ func _draw_character() -> void:
 	var arm_swing := sin(time_passed * 1.45) * 7.0
 	var head_float := sin(time_passed * 1.25 + 0.5) * 2.2
 	p.y += head_float
-	# pose-dependent silhouette; articulated limbs and joints are redrawn every frame
+	# Joint-driven limbs: shoulder -> elbow -> wrist and hip -> knee -> ankle.
+	# Each segment is solved separately so elbows and knees bend instead of stretching.
+	var left_shoulder := p + Vector2(-45, 115)
+	var right_shoulder := p + Vector2(45, 115)
+	var left_elbow := p + Vector2(-95 + sin(time_passed * 1.45) * 5.0, 195 + arm_pose * 24.0)
+	var right_elbow := p + Vector2(95 - arm_swing * 0.45, 195 - arm_pose * 18.0)
+	var left_wrist := p + Vector2(-155 + arm_swing + hand_reach * 38.0, 275 + arm_swing * 0.35 - hand_reach * 28.0)
+	var right_wrist := p + Vector2(155 - arm_swing, 275 - arm_swing * 0.35)
 	if pose_index == 1:
-		_draw_limb(p + Vector2(-35, 40), p + Vector2(-95, 185), 25)
-		_draw_limb(p + Vector2(35, 40), p + Vector2(95, 185), 25)
-		_draw_limb(p + Vector2(-30, 185), p + Vector2(-40, 365), 34)
-		_draw_limb(p + Vector2(30, 185), p + Vector2(40, 365), 34)
-	elif pose_index == 2:
-		_draw_limb(p + Vector2(-35, 50), p + Vector2(-150, 180), 30)
-		_draw_limb(p + Vector2(35, 50), p + Vector2(150, 180), 30)
-		_draw_limb(p + Vector2(-25, 190), p + Vector2(-150, 250), 42)
-		_draw_limb(p + Vector2(25, 190), p + Vector2(150, 250), 42)
-	else:
-		_draw_limb(p + Vector2(-45, 115), p + Vector2(-155 + arm_swing, 275 + arm_swing * 0.35), 42)
-		_draw_limb(p + Vector2(45, 115), p + Vector2(155 - arm_swing, 275 - arm_swing * 0.35), 42)
-		_draw_limb(p + Vector2(-90, 250), p + Vector2(-15, 375), 54)
-		_draw_limb(p + Vector2(90, 250), p + Vector2(15, 375), 54)
+		left_elbow = p + Vector2(-78, 175)
+		right_elbow = p + Vector2(78, 175)
+		left_wrist = p + Vector2(-105, 270)
+		right_wrist = p + Vector2(105, 270)
+	elif pose_index == 2 or pose_index == 3:
+		left_elbow = p + Vector2(-115, 175)
+		right_elbow = p + Vector2(115, 175)
+		left_wrist = p + Vector2(-150, 220)
+		right_wrist = p + Vector2(150, 220)
+	_draw_limb(left_shoulder, left_elbow, 34)
+	_draw_limb(left_elbow, left_wrist, 27)
+	_draw_limb(right_shoulder, right_elbow, 34)
+	_draw_limb(right_elbow, right_wrist, 27)
+	# Legs are split at the knees; the pose editor changes the knee bend.
+	var left_hip := p + Vector2(-55, 250)
+	var right_hip := p + Vector2(55, 250)
+	var left_knee := p + Vector2(-90 + leg_pose * 28.0, 315)
+	var right_knee := p + Vector2(90 - leg_pose * 28.0, 315)
+	var left_ankle := p + Vector2(-15, 375)
+	var right_ankle := p + Vector2(15, 375)
+	_draw_limb(left_hip, left_knee, 48)
+	_draw_limb(left_knee, left_ankle, 43)
+	_draw_limb(right_hip, right_knee, 48)
+	_draw_limb(right_knee, right_ankle, 43)
 	# torso
 	var body := PackedVector2Array([p + Vector2(-75, 30), p + Vector2(75, 30), p + Vector2(105, 210 + breath * 2.0), p + Vector2(60, 285 + breath * 1.5), p + Vector2(-60, 285 + breath * 1.5), p + Vector2(-105, 210 + breath * 2.0)])
 	draw_colored_polygon(body, SKIN)
@@ -178,11 +205,13 @@ func _draw_character() -> void:
 		draw_circle(p + Vector2(-52, 19), 7, Color("#e77c83", 0.42))
 		draw_circle(p + Vector2(52, 19), 7, Color("#e77c83", 0.42))
 	# hands and manicure details
-	_draw_hand(p + Vector2(-155, 275), manicure)
-	_draw_hand(p + Vector2(155, 275), manicure)
+	_draw_hand(left_wrist, manicure)
+	_draw_hand(right_wrist, manicure)
 	# feet and pedicure accents
-	_draw_foot(p + Vector2(-15, 375), pedicure)
-	_draw_foot(p + Vector2(15, 375), pedicure)
+	_draw_foot(left_ankle, pedicure)
+	_draw_foot(right_ankle, pedicure)
+	if interaction_target != "none":
+		draw_arc(p + Vector2(0, 180), 92 + sin(time_passed * 7.0) * 5.0, 0.0, TAU, 48, Color("#ff9fc8", 0.8), 4.0)
 	# floating heart / reaction
 	var heart_y := -105 + sin(time_passed * 2.0) * 5.0
 	if reaction > 0.0:
@@ -235,9 +264,21 @@ func _draw_ui() -> void:
 	_draw_stat("♥ Близость", closeness, 1105)
 	_draw_stat("★ Энергия", energy, 1170)
 	# bottom nav
-	var nav := ["Поза", "Ногти", "Педикюр", "Массаж"]
+	var nav := ["Редактор", "Ногти", "Педикюр", "Массаж"]
 	for i in range(4):
 		_button(Rect2(18 + i * 176, 890, 164, 76), nav[i])
+	if pose_editor:
+		_panel(Rect2(390, 170, 300, 190))
+		draw_string(ThemeDB.fallback_font, Vector2(410, 205), "Редактор поз", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
+		_button(Rect2(405, 220, 125, 52), "Руки −")
+		_button(Rect2(550, 220, 125, 52), "Руки +")
+		_button(Rect2(405, 285, 125, 52), "Ноги −")
+		_button(Rect2(550, 285, 125, 52), "Ноги +")
+	if interaction_target != "none":
+		_panel(Rect2(315, 1040, 380, 115))
+		draw_string(ThemeDB.fallback_font, Vector2(338, 1080), "Массаж: " + str(int(massage_progress * 100.0)) + "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
+		draw_rect(Rect2(338, 1095, 330, 18), INK)
+		draw_rect(Rect2(338, 1095, 330 * massage_progress, 18), PINK)
 	draw_string(ThemeDB.fallback_font, Vector2(540, 1225), "Монеты: " + str(coins), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, PALE)
 
 func _panel(r: Rect2, fill: Color = Color("#281827")) -> void:
@@ -263,10 +304,22 @@ func _input(event: InputEvent) -> void:
 		_handle_tap(_to_design(event.position))
 	elif event is InputEventScreenDrag:
 		dragging = true
-		massage_progress = clampf(massage_progress + event.relative.length() / 450.0, 0.0, 1.0)
-		mood = minf(100.0, mood + 0.03)
-	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		massage_progress = clampf(massage_progress + event.relative.length() / 450.0, 0.0, 1.0)
+		if interaction_target != "none":
+			massage_progress = clampf(massage_progress + event.relative.length() / 700.0, 0.0, 1.0)
+			interaction_pulse = 0.5
+			mood = minf(100.0, mood + 0.03)
+			if massage_progress >= 0.95:
+				interaction_target = "none"
+				dragging = false
+				action_text = "Мне стало легче, спасибо ♡"
+				_react(4.0)
+	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and interaction_target != "none":
+		massage_progress = clampf(massage_progress + event.relative.length() / 700.0, 0.0, 1.0)
+		interaction_pulse = 0.5
+		if massage_progress >= 0.95:
+			interaction_target = "none"
+			action_text = "Вот теперь совсем хорошо ♡"
+			_react(4.0)
 
 func _to_design(pos: Vector2) -> Vector2:
 	var s := get_viewport_rect().size
@@ -277,7 +330,7 @@ func _handle_tap(pos: Vector2) -> void:
 	if pos.y > 890 and pos.y < 980:
 		var idx := clampi(int(pos.x / 176.0), 0, 3)
 		match idx:
-			0: _next_pose()
+			0: pose_editor = not pose_editor
 			1: _change_manicure()
 			2: _change_pedicure()
 			3: _start_massage()
@@ -288,11 +341,20 @@ func _handle_tap(pos: Vector2) -> void:
 			1: _start_massage()
 			2: _change_manicure()
 			3: _gift()
+	elif pose_editor and pos.x >= 390 and pos.y >= 215 and pos.y < 355:
+		if pos.y < 280:
+			arm_pose = clampf(arm_pose + (-0.15 if pos.x < 540 else 0.15), -1.0, 1.0)
+		else:
+			leg_pose = clampf(leg_pose + (-0.15 if pos.x < 540 else 0.15), -1.0, 1.0)
+		action_text = "Подбираем положение суставов ♡"
 	elif pos.x > 250 and pos.y < 300:
 		_greet()
 
 func _next_pose() -> void:
 	pose_index = (pose_index + 1) % pose_names.size()
+	pose_editor = false
+	arm_pose = 0.0
+	leg_pose = 0.0
 	pose_offset_from = pose_offset_current
 	pose_offset_to = pose_offsets[pose_index]
 	pose_blend = 0.0
@@ -314,8 +376,10 @@ func _change_pedicure() -> void:
 func _start_massage() -> void:
 	expression = "soft"
 	expression_timer = 3.0
-	massage_progress = 0.1
-	action_text = "Проведи пальцем, чтобы сделать массаж ♡"
+	massage_progress = 0.0
+	interaction_target = "body"
+	dragging = false
+	action_text = "Проводи пальцем по контуру, чтобы сделать массаж ♡"
 	energy = minf(100.0, energy + 1.0)
 	mood = minf(100.0, mood + 4.0)
 	closeness = minf(100.0, closeness + 1.0)
