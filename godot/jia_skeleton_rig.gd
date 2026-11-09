@@ -56,7 +56,6 @@ func set_appearance(outfit: Color, hands: int, feet: int, face: String, outfit_s
 func _build_skeleton() -> void:
 	skeleton = Skeleton2D.new()
 	skeleton.name = "Skeleton2D"
-	add_child(skeleton)
 	var root := _bone("Root", skeleton, Vector2.ZERO)
 	var pelvis := _bone("Pelvis", root, Vector2(0, 125))
 	var torso := _bone("Torso", pelvis, Vector2(0, -105))
@@ -115,6 +114,9 @@ func _build_skeleton() -> void:
 	_add_nails(bones["Wrist_R"])
 	_add_nails(bones["Ankle_L"], true)
 	_add_nails(bones["Ankle_R"], true)
+	# Build the complete Bone2D hierarchy before entering the scene tree so
+	# Skeleton2D can calculate bone lengths from their actual child joints.
+	add_child(skeleton)
 
 func _bone(bone_name: String, parent: Node, offset: Vector2) -> Bone2D:
 	var bone := Bone2D.new()
