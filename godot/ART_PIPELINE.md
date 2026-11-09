@@ -4,50 +4,50 @@
 
 The approved source is the transparent 1245×1040 PNG supplied in the conversation. Preserve the face, copper-red hairstyle, proportions, linework, palette and texture. The original must remain untouched. Do not substitute a generated or generic character.
 
-The source is a single flattened pose. It is not possible to obtain clean independent limb motion by simply stretching or rotating the whole bitmap. A proper rig needs aligned transparent layers and reconstruction of the anatomy hidden in the original pose.
+The source is a single flattened pose. It is not possible to obtain clean independent limb motion by simply stretching or rotating the whole bitmap. A proper production rig requires aligned transparent layers and reconstruction of the anatomy hidden in the original pose.
 
-## Current implementation (procedural interaction prototype)
+## Current implementation
 
-- Idle motion: breathing, body bob, blink timing, eye gaze and hair sway.
-- Facial reactions: soft, happy, shy, surprised and sleepy states.
-- Joint-segment drawing: upper/lower arm segments with elbow points and upper/lower leg segments with knee points.
-- Pose editor: independent arm and leg bend controls, plus pose presets.
-- Interaction: drag-based massage progress, reaction pulse, mood / closeness / energy feedback.
-- Customization: manicure and pedicure color overlays.
+- A live `Skeleton2D` hierarchy is now instantiated in `Main.tscn`: root, pelvis, torso, neck, head, hair, shoulders, elbows, wrists, hips, knees and ankles.
+- The fallback character is assembled from separate vector surfaces parented to bones. Hands have five fingers, feet have toe/nail overlays, and clothing has separate upper/lower surfaces.
+- Five pose states are supported. Bone rotations blend toward pose targets while breathing and small idle movements continue.
+- Face geometry responds to sleepy, shy and surprised states; hair, outfit color/silhouette, manicure and pedicure are controlled by gameplay state.
+- Touch zones, relationship dialogue, mood/energy responses and a timed rhythm mini-game are connected to the world simulation.
+- Daily needs, schedule events, inventory, rest/time progression and save/load are implemented.
+- The room is a static illustrated bedroom background. It is intentionally not an interactive furniture editor.
+- Procedural ambient music and soft original chime effects have volume/on-off controls saved in the player profile.
 
-This pass makes the current placeholder react and articulate more convincingly. It is not yet a production Skeleton2D rig and it does not yet render the approved reference artwork.
+**Important limitation:** this is a functioning articulated fallback rig, not the final approved painted character. The original 1245×1040 image is not yet imported into the Godot project, and the fallback vector surfaces do not reproduce its exact face, texture, clothing detail or anatomy.
 
-## Four parallel production tracks
+## Remaining production tracks
 
-### 1. Canonical artwork import
-- Bring the exact approved PNG into godot/assets/jia/source/.
+### 1. Canonical artwork import and anatomical reconstruction
+- Import the exact approved PNG into `godot/assets/jia/source/`.
 - Preserve the original file as the immutable source.
 - Create aligned transparent layers on the original canvas: rear hair, torso/hips, legs, head/face, fringe/front hair, upper arms, forearms/hands, outfit details, feet and nail overlays.
-- Keep a source-to-layer manifest so the pieces can be revised without losing alignment.
+- Reconstruct hidden anatomy behind the original pose; do not stretch the flattened image or invent missing limbs by rotating narrow cutouts.
+- Keep a source-to-layer manifest so pieces can be revised without losing alignment.
 
-### 2. Skeleton and joint rig
-- Build a Skeleton2D hierarchy for torso, neck/head, shoulders, elbows, wrists, hips, knees and ankles.
-- Attach the separated art layers to the corresponding bones.
-- Reconstruct hidden anatomy rather than distorting the original bitmap.
-- Keep manicure and pedicure overlays parented to the hand and foot bones.
+### 2. Production art rig
+- Replace the vector fallback surfaces with the reconstructed transparent artwork.
+- Bind the art layers to the existing Skeleton2D hierarchy.
+- Validate shoulder, elbow, wrist, hip, knee and ankle deformations from front, side and rear poses.
+- Keep manicure and pedicure overlays attached to the hand and foot bones.
 
-### 3. Animation set
-- AnimationPlayer clips: idle breathing, blink, gaze, hair sway, head turns, arm gestures, leg/foot movement, pose transitions and reactions.
-- Blend pose transitions instead of snapping between presets.
-- Use additive micro-motion for breathing and hair on top of the selected pose.
-- Tie animation states to mood, closeness and energy.
+### 3. Animation polish
+- Add authored AnimationPlayer clips for idle breathing, blink, gaze, hair sway, head turns, gestures and transitions.
+- Improve the current five pose presets with tested silhouettes and natural joint limits.
+- Tie facial and body animation to mood, closeness and energy.
+- Check every pose for self-intersections, stretched limbs and foot/hand orientation.
 
-### 4. Pose editor and interactions
-- Expand the current arm/leg controls into per-joint editing with saveable pose presets.
-- Add touch zones for head, hands, feet and body with distinct feedback animations.
-- Make massage and beauty interactions visible on the character, not just in dialogue or counters.
-- Ensure nail overlays follow the animated fingers and toes.
+### 4. Gameplay and presentation
+- Expand dialogue from sequential lines into contextual conversations and unlockable relationship scenes.
+- Add more mini-games, event variety, needs and daily schedule branches.
+- Continue balancing wardrobe visuals and visible beauty interactions.
+- Finish UI layout, audio options and Android performance profiling.
 
-## Acceptance checks
+## Verification
 
-- The canonical art is visibly the same character as the approved reference.
-- No limb stretches unnaturally at elbows or knees during supported poses.
-- Hands and feet keep their nail overlays attached during movement.
-- Idle animation is continuous and subtle; expressions do not flicker.
-- Each interaction produces a visible character response and a state change.
-- The Android export completes and the APK is installable before calling the build finished.
+- CI imports the Godot project and launches the main scene headlessly.
+- A world simulation smoke test checks consumables, touch progression, rest/time advancement and save/load.
+- The Android APK is intentionally not treated as a deliverable until the art/gameplay pass is complete and a final Android export is verified.
