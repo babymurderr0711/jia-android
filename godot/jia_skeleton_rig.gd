@@ -188,23 +188,24 @@ func _ellipse(center: Vector2, radius: Vector2) -> PackedVector2Array:
 
 func _animate_bones() -> void:
 	var breath := sin(clock * 1.55)
-	bones["Torso"].rotation = breath * 0.018
-	bones["Head"].rotation = sin(clock * 0.8) * 0.035
-	bones["Hair"].rotation = sin(clock * 1.2) * 0.025
-	bones["Shoulder_L"].rotation = sin(clock * 1.1) * 0.045
-	bones["Shoulder_R"].rotation = -sin(clock * 1.1 + 0.4) * 0.045
-	bones["Elbow_L"].rotation = sin(clock * 0.9 + 0.7) * 0.035
-	bones["Elbow_R"].rotation = -sin(clock * 0.9) * 0.035
-	bones["Knee_L"].rotation = sin(clock * 0.65) * 0.018
-	bones["Knee_R"].rotation = -sin(clock * 0.65 + 0.3) * 0.018
-	var pose_rotations := [
-		{"Shoulder_L":0.0,"Shoulder_R":0.0,"Hip_L":0.0,"Hip_R":0.0},
-		{"Shoulder_L":-0.28,"Shoulder_R":0.28,"Hip_L":-0.10,"Hip_R":0.10},
-		{"Shoulder_L":-0.48,"Shoulder_R":0.48,"Hip_L":0.18,"Hip_R":-0.18},
-		{"Shoulder_L":0.55,"Shoulder_R":-0.55,"Hip_L":0.25,"Hip_R":-0.25},
-		{"Shoulder_L":0.15,"Shoulder_R":-0.15,"Hip_L":-0.08,"Hip_R":0.08}
+	var idle_sway := sin(clock * 0.72)
+	var pose_targets := [
+		{"Root":0.0,"Torso":-0.04,"Head":0.0,"Shoulder_L":-0.18,"Shoulder_R":0.18,"Elbow_L":-0.12,"Elbow_R":0.12,"Hip_L":-0.58,"Hip_R":0.58,"Knee_L":1.05,"Knee_R":-1.05},
+		{"Root":0.0,"Torso":0.0,"Head":0.0,"Shoulder_L":-0.28,"Shoulder_R":0.28,"Elbow_L":0.08,"Elbow_R":-0.08,"Hip_L":0.0,"Hip_R":0.0,"Knee_L":0.0,"Knee_R":0.0},
+		{"Root":0.0,"Torso":-0.08,"Head":0.03,"Shoulder_L":-0.48,"Shoulder_R":0.48,"Elbow_L":0.25,"Elbow_R":-0.25,"Hip_L":-1.05,"Hip_R":1.05,"Knee_L":1.45,"Knee_R":-1.45},
+		{"Root":1.35,"Torso":0.08,"Head":-0.04,"Shoulder_L":0.5,"Shoulder_R":-0.5,"Elbow_L":0.35,"Elbow_R":-0.35,"Hip_L":0.25,"Hip_R":-0.25,"Knee_L":0.45,"Knee_R":-0.45},
+		{"Root":0.0,"Torso":0.0,"Head":PI,"Shoulder_L":0.15,"Shoulder_R":-0.15,"Elbow_L":0.0,"Elbow_R":0.0,"Hip_L":-0.08,"Hip_R":0.08,"Knee_L":0.0,"Knee_R":0.0}
 	]
-	for key in pose_rotations[pose]:
-		var target: float = pose_rotations[pose][key]
+	var targets: Dictionary = pose_targets[pose]
+	for key in targets:
+		var target: float = targets[key]
+		if key == "Torso":
+			target += breath * 0.018
+		elif key == "Head":
+			target += idle_sway * 0.025
+		elif key == "Shoulder_L":
+			target += sin(clock * 1.1) * 0.025
+		elif key == "Shoulder_R":
+			target -= sin(clock * 1.1 + 0.4) * 0.025
 		var bone: Bone2D = bones[key]
-		bone.rotation = lerpf(bone.rotation, target, 0.035)
+		bone.rotation = lerp_angle(bone.rotation, target, 0.055)
