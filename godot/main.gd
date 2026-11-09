@@ -206,6 +206,32 @@ func _draw_room() -> void:
 	draw_circle(Vector2(600, 602), 5, PINK)
 	draw_circle(Vector2(620, 602), 5, PINK)
 
+	# Warm, static bedroom dressing.
+	draw_colored_polygon(PackedVector2Array([Vector2(18,140),Vector2(48,140),Vector2(48,540),Vector2(18,520)]), Color("#70405f"))
+	draw_colored_polygon(PackedVector2Array([Vector2(158,140),Vector2(188,140),Vector2(188,520),Vector2(158,540)]), Color("#70405f"))
+	draw_line(Vector2(48,150),Vector2(158,150),Color("#d18aaa"),5.0)
+	draw_circle(Vector2(92,225),24,Color("#f6dfb0"))
+	draw_circle(Vector2(101,216),22,INK)
+	for star in [Vector2(58,190),Vector2(140,245),Vector2(65,330),Vector2(145,390)]:
+		draw_line(star+Vector2(-5,0),star+Vector2(5,0),PALE,2.0)
+		draw_line(star+Vector2(0,-5),star+Vector2(0,5),PALE,2.0)
+	# Floating shelf and books.
+	draw_rect(Rect2(510,445,165,12),Color("#9a5d78"))
+	draw_rect(Rect2(525,405,22,40),Color("#d98ca8"))
+	draw_rect(Rect2(551,416,18,29),Color("#c8a17d"))
+	draw_rect(Rect2(574,395,26,50),Color("#6c718f"))
+	draw_rect(Rect2(605,425,48,20),Color("#4a2d45"))
+	# A potted plant beside the bed.
+	draw_rect(Rect2(548,615,38,36),Color("#b87583"))
+	draw_colored_polygon(PackedVector2Array([Vector2(567,615),Vector2(540,575),Vector2(555,586),Vector2(562,550),Vector2(575,585),Vector2(594,566),Vector2(580,615)]),Color("#78906a"))
+	draw_line(Vector2(567,615),Vector2(562,566),Color("#48664c"),3.0)
+	# Rug and floor lamp.
+	draw_rect(Rect2(145,1160,430,75),Color("#75445f"))
+	draw_rect(Rect2(160,1170,400,55),Color("#9a5b7d"))
+	draw_line(Vector2(650,480),Vector2(650,720),Color("#b98b75"),7.0)
+	draw_rect(Rect2(620,455,60,38),Color("#e8b9a2"))
+	draw_circle(Vector2(650,494),8,Color("#f8d9a9"))
+
 func _draw_character() -> void:
 	var breath := sin(time_passed * 1.65)
 	var bob := sin(time_passed * 2.2) * 2.5
