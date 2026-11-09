@@ -66,14 +66,14 @@ func advance_minute() -> void:
 	_check_schedule()
 
 func _check_schedule() -> void:
-		if not active_event.is_empty():
-			return
+	if not active_event.is_empty():
+		return
 	for event in EVENTS:
 		if minutes >= int(event.from) and minutes < int(event.to):
 			var event_id: String = event.id
 			if not completed_events.has(event_id + "_" + str(day)):
 				active_event = event_id
-						event_started.emit(event_id, str(event.title), str(event.line))
+				event_started.emit(event_id, str(event.title), str(event.line))
 				return
 
 func complete_event() -> void:
