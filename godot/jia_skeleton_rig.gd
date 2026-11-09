@@ -17,6 +17,7 @@ var manicure := 0
 var pedicure := 0
 var outfit_color := CLOTH
 var outfit_surface: Polygon2D
+var outfit_top_surface: Polygon2D
 var nail_surfaces: Array[Polygon2D] = []
 const NAIL_COLORS := [Color("#17121d"), Color("#e83e72"), Color("#f4c2d9"), Color("#9d1d45")]
 
@@ -39,6 +40,8 @@ func set_appearance(outfit: Color, hands: int, feet: int, face: String) -> void:
 	expression = face
 	if is_instance_valid(outfit_surface):
 		outfit_surface.color = outfit_color
+	if is_instance_valid(outfit_top_surface):
+		outfit_top_surface.color = outfit_color
 	for i in range(nail_surfaces.size()):
 		nail_surfaces[i].color = NAIL_COLORS[manicure if i < 4 else pedicure]
 
@@ -65,6 +68,10 @@ func _build_skeleton() -> void:
 	var r_knee := _bone("Knee_R", r_hip, Vector2(28, 115))
 	_bone("Ankle_R", r_knee, Vector2(12, 105))
 	_add_surface(torso, PackedVector2Array([Vector2(-52,-10),Vector2(52,-10),Vector2(68,112),Vector2(42,145),Vector2(-42,145),Vector2(-68,112)]), SKIN)
+	outfit_top_surface = Polygon2D.new()
+	outfit_top_surface.polygon = PackedVector2Array([Vector2(-51,4),Vector2(-38,-5),Vector2(0,16),Vector2(38,-5),Vector2(51,4),Vector2(42,80),Vector2(0,66),Vector2(-42,80)])
+	outfit_top_surface.color = outfit_color
+	torso.add_child(outfit_top_surface)
 	outfit_surface = Polygon2D.new()
 	outfit_surface.polygon = PackedVector2Array([Vector2(-48,0),Vector2(48,0),Vector2(58,72),Vector2(-58,72)])
 	outfit_surface.color = outfit_color
@@ -72,6 +79,21 @@ func _build_skeleton() -> void:
 	_add_surface(neck, PackedVector2Array([Vector2(-16,-8),Vector2(16,-8),Vector2(16,30),Vector2(-16,30)]), SKIN)
 	_add_surface(head, _ellipse(Vector2.ZERO, Vector2(48,58)), SKIN)
 	_add_surface(head.get_node("Hair") as Bone2D, _ellipse(Vector2(0,-31),Vector2(51,29)), HAIR)
+	var fringe := Polygon2D.new()
+	fringe.polygon = PackedVector2Array([Vector2(-44,-38),Vector2(-25,-56),Vector2(-4,-40),Vector2(8,-58),Vector2(32,-35),Vector2(42,-18),Vector2(8,-22),Vector2(-12,-12),Vector2(-35,-20)])
+	fringe.color = Color("#c65a3b")
+	head.add_child(fringe)
+	for x in [-17.0, 17.0]:
+		var brow := Line2D.new()
+		brow.points = PackedVector2Array([Vector2(x-7,-17),Vector2(x,-20),Vector2(x+7,-17)])
+		brow.width = 3.0
+		brow.default_color = Color("#5a2a28")
+		head.add_child(brow)
+	for i in range(5):
+		var freckle := Polygon2D.new()
+		freckle.polygon = _ellipse(Vector2(-24.0 + float(i)*12.0,14.0 + float(i%2)*4.0),Vector2(1.5,1.5))
+		freckle.color = Color("#a85c4d")
+		head.add_child(freckle)
 	for pair in [[l_shoulder,l_elbow],[l_elbow,l_elbow.get_node("Wrist_L")],[r_shoulder,r_elbow],[r_elbow,r_elbow.get_node("Wrist_R")]]:
 		_add_bone_capsule(pair[0], pair[1], 18.0, SKIN)
 	for pair in [[l_hip,l_knee],[l_knee,l_knee.get_node("Ankle_L")],[r_hip,r_knee],[r_knee,r_knee.get_node("Ankle_R")]]:
