@@ -60,6 +60,7 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
 		_save_game()
+		JiaWorld.save_world()
 
 func _save_game() -> void:
 	var data := ConfigFile.new()
@@ -437,16 +438,19 @@ func _next_pose() -> void:
 
 func _change_manicure() -> void:
 	manicure = (manicure + 1) % 4
+	JiaWorld.set_nails(manicure, pedicure)
 	action_text = ["Мне нравятся мои чёрные ноготки!", "Смотри, новый розовый маникюр ♡", "Нежный перламутр — красиво!", "Бордовый? Очень в моём стиле!"][manicure]
 	_react(3.0)
 
 func _change_pedicure() -> void:
 	pedicure = (pedicure + 1) % 4
+	JiaWorld.set_nails(manicure, pedicure)
 	action_text = "Посмотри, я обновила педикюр! ♡"
 	_react(3.0)
 
 func _start_massage() -> void:
 	expression = "soft"
+	JiaWorld.touch_response("body")
 	expression_timer = 3.0
 	massage_progress = 0.0
 	interaction_target = "body"
@@ -457,13 +461,11 @@ func _start_massage() -> void:
 	closeness = minf(100.0, closeness + 1.0)
 
 func _gift() -> void:
-	if coins >= 20:
-		coins -= 20
-		mood = minf(100.0, mood + 10.0)
-		closeness = minf(100.0, closeness + 5.0)
+	if JiaWorld.consume("gift_flower"):
+		_sync_world_state()
 		action_text = "Ой, подарок для меня? Спасибо! ♡"
 	else:
-		action_text = "Давай накопим ещё монеток? ♡"
+		action_text = "Цветы закончились. Заглянем в магазин позже? ♡"
 
 func _greet() -> void:
 	action_text = "Я скучала! Расскажешь, как прошёл день? ♡"
