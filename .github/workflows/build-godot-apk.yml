@@ -54,7 +54,7 @@ jobs:
           EOF
 
       - name: Install Gradle Android build template
-        run: godot --headless --path godot --editor --install-android-build-template
+        run: timeout 180s godot --headless --path godot --editor --install-android-build-template
 
       - name: Validate project scripts
         run: godot --headless --path godot --editor --quit
