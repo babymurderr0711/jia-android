@@ -5,6 +5,8 @@ var enabled := true
 var volume_level := 0.35
 var sample_cursor := 0
 var song_time := 0.0
+var sfx_enabled := true
+var chime_time := -1.0
 const SAMPLE_RATE := 22050.0
 const CHORDS := [
 	[130.81, 164.81, 196.00],
@@ -24,6 +26,10 @@ func _ready() -> void:
 func set_enabled(value: bool) -> void:
 	enabled = value
 	volume_db = linear_to_db(volume_level) if enabled else -80.0
+
+func play_chime() -> void:
+	if sfx_enabled:
+		chime_time = 0.0
 
 func set_volume(value: float) -> void:
 	volume_level = clampf(value, 0.0, 0.8)
@@ -48,5 +54,10 @@ func _process(delta: float) -> void:
 			wave += sin(TAU * frequency * 2.0 * seconds) * 0.08
 		var pulse := 0.75 + 0.25 * sin(TAU * song_time / 8.0)
 		var sample := wave * 0.012 * fade * pulse
+		if chime_time >= 0.0:
+			sample += sin(TAU * 880.0 * chime_time) * exp(-chime_time * 13.0) * 0.035
+			chime_time += 1.0 / SAMPLE_RATE
+			if chime_time > 0.35:
+				chime_time = -1.0
 		playback.push_frame(Vector2(sample, sample))
 		sample_cursor += 1
