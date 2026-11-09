@@ -103,6 +103,10 @@ func _build_skeleton() -> void:
 	for pair in [[l_hip,l_knee],[l_knee,l_knee.get_node("Ankle_L")],[r_hip,r_knee],[r_knee,r_knee.get_node("Ankle_R")]]:
 		_add_bone_capsule(pair[0], pair[1], 25.0, SKIN)
 	_add_face(head)
+	_add_hand_shape(bones["Wrist_L"])
+	_add_hand_shape(bones["Wrist_R"])
+	_add_foot_shape(bones["Ankle_L"])
+	_add_foot_shape(bones["Ankle_R"])
 	_add_nails(bones["Wrist_L"])
 	_add_nails(bones["Wrist_R"])
 	_add_nails(bones["Ankle_L"], true)
@@ -168,12 +172,26 @@ func _add_face(head: Bone2D) -> void:
 	mouth.default_color = Color("#8b3946")
 	head.add_child(mouth)
 
+func _add_hand_shape(parent: Bone2D) -> void:
+	_add_surface(parent, _ellipse(Vector2(0,14),Vector2(13,16)), SKIN)
+	var lengths := [19.0, 26.0, 29.0, 25.0, 18.0]
+	for i in range(5):
+		var x := -11.0 + float(i) * 5.5
+		var length: float = lengths[i]
+		var finger := PackedVector2Array([Vector2(x-2,20),Vector2(x+2,20),Vector2(x+2,length+20),Vector2(x-2,length+20)])
+		_add_surface(parent, finger, SKIN)
+	_add_surface(parent, PackedVector2Array([Vector2(-10,12),Vector2(-15,8),Vector2(-22,19),Vector2(-18,23)]), SKIN)
+
+func _add_foot_shape(parent: Bone2D) -> void:
+	_add_surface(parent, _ellipse(Vector2(14,12),Vector2(31,13)), SKIN)
+	_add_surface(parent, PackedVector2Array([Vector2(-3,5),Vector2(15,2),Vector2(34,7),Vector2(37,15),Vector2(13,22),Vector2(-4,17)]), SKIN)
+
 func _add_nails(parent: Bone2D, toes: bool = false) -> void:
-	var count := 5 if toes else 4
+	var count := 5
 	for i in range(count):
 		var nail := Polygon2D.new()
-		var x := float(i - 2) * (5.0 if toes else 6.0)
-		var y := 5.0 if toes else 9.0
+		var x := float(i - 2) * (5.0 if toes else 5.5)
+		var y := 7.0 if toes else 43.0
 		nail.polygon = _ellipse(Vector2(x, y), Vector2(2.2, 3.8) if toes else Vector2(2.8, 4.8))
 		nail.color = NAIL_COLORS[pedicure if toes else manicure]
 		parent.add_child(nail)
