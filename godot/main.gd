@@ -597,7 +597,7 @@ func _sync_world_state() -> void:
 	manicure = JiaWorld.nail_style % 4
 	pedicure = JiaWorld.toe_style % 4
 	var wardrobe_colors := [Color("#24111f"), Color("#5b1c38"), Color("#27344b"), Color("#6b4a35")]
-	character_rig.set_appearance(wardrobe_colors[outfit_index % wardrobe_colors.size()], manicure, pedicure, expression)
+	character_rig.set_appearance(wardrobe_colors[outfit_index % wardrobe_colors.size()], manicure, pedicure, expression, outfit_index)
 
 func _on_world_event(_event_id: String, title: String, line: String) -> void:
 	action_text = title + ": " + line
