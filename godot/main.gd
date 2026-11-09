@@ -344,9 +344,9 @@ func _draw_ui() -> void:
 	_panel(Rect2(22, 150, 340, 112), PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(42, 193), action_text.left(27), HORIZONTAL_ALIGNMENT_LEFT, 300, 23, INK)
 	# right actions
-	var labels := ["Позировать", "Массаж", "Чай", "Подарок"]
-	for i in range(4):
-		_button(Rect2(500, 400 + i * 92, 200, 72), labels[i])
+	var labels := ["Позировать", "Массаж", "Чай", "Подарок", "Отдых"]
+	for i in range(5):
+		_button(Rect2(500, 380 + i * 88, 200, 68), labels[i])
 	# stats
 	_panel(Rect2(18, 980, 280, 250))
 	_draw_stat("☺ Настроение", mood, 1018)
@@ -441,8 +441,8 @@ func _handle_tap(pos: Vector2) -> void:
 			1: _change_manicure()
 			2: _change_pedicure()
 			3: _start_rhythm_game()
-	elif pos.x > 495 and pos.y >= 400 and pos.y < 768:
-		var idx := int((pos.y - 400) / 92)
+	elif pos.x > 495 and pos.y >= 380 and pos.y < 820:
+		var idx := int((pos.y - 380) / 88)
 		match idx:
 			0: _next_pose()
 			1: _start_massage()
@@ -453,6 +453,7 @@ func _handle_tap(pos: Vector2) -> void:
 				else:
 					action_text = "Чай закончился — нужно пополнить запасы"
 			3: _gift()
+			4: _rest()
 	elif pose_editor and pos.x >= 390 and pos.y >= 215 and pos.y < 355:
 		if pos.y < 280:
 			arm_pose = clampf(arm_pose + (-0.15 if pos.x < 540 else 0.15), -1.0, 1.0)
@@ -613,3 +614,11 @@ func _talk() -> void:
 	expression_timer = 2.8
 	_sync_world_state()
 	_react(0.0)
+
+func _rest() -> void:
+	JiaWorld.rest(120)
+	_sync_world_state()
+	expression = "sleepy"
+	expression_timer = 4.0
+	action_text = "Я немного отдохнула. Теперь снова полна сил ♡"
+	_react(2.0)
