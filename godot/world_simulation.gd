@@ -142,8 +142,12 @@ func load_world() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","inventory","completed_events"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","inventory"]:
 		if cfg.has_section_key("world", key):
 			set(key, cfg.get_value("world", key))
+	if cfg.has_section_key("world", "completed_events"):
+		completed_events.clear()
+		for event_id in cfg.get_value("world", "completed_events", []):
+			completed_events.append(str(event_id))
 	minutes = posmod(int(minutes), DAY_MINUTES)
 	day = maxi(1, int(day))
