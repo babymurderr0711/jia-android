@@ -19,10 +19,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Parse project and scripts
+      - name: Import and parse project
         shell: bash
         run: |
           set -euxo pipefail
           godot --headless --path godot --editor --quit
-          godot --headless --path godot --check-only --script res://main.gd
-          godot --headless --path godot --check-only --script res://world_simulation.gd
+          godot --headless --path godot --quit-after 3
