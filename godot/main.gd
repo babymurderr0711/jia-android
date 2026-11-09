@@ -56,6 +56,15 @@ var rhythm_window := 0.0
 var rhythm_target := Vector2(360, 520)
 var rhythm_cooldown := 0.0
 var pending_touch_zone := "body"
+var dialogue_index := 0
+const DIALOGUE_LINES := [
+	"Как прошёл твой день? Я внимательно слушаю ♡",
+	"Мне нравится, когда мы проводим время вместе",
+	"Сегодня хочется немного помечтать и выпить чаю",
+	"Расскажи, что тебя сейчас радует больше всего?",
+	"Спасибо, что возвращаешься ко мне. Это важно ♡",
+	"Давай выберем что-нибудь приятное на вечер"
+]
 
 func _ready() -> void:
 	_load_game()
@@ -478,10 +487,13 @@ func _handle_tap(pos: Vector2) -> void:
 		else:
 			pending_touch_zone = "body"
 		_interact_with_jia()
-	elif pos.x >= 22 and pos.x <= 362 and pos.y >= 150 and pos.y <= 262 and not JiaWorld.active_event.is_empty():
-		JiaWorld.complete_event()
-		_sync_world_state()
-		action_text = "Событие завершено! +5 монет ♡"
+	elif pos.x >= 22 and pos.x <= 362 and pos.y >= 150 and pos.y <= 262:
+		if not JiaWorld.active_event.is_empty():
+			JiaWorld.complete_event()
+			_sync_world_state()
+			action_text = "Событие завершено! +5 монет ♡"
+		else:
+			_talk()
 	elif pos.x > 250 and pos.y < 300:
 		_greet()
 
@@ -588,3 +600,13 @@ func _start_rhythm_game() -> void:
 	rhythm_cooldown = 0.0
 	rhythm_target = Vector2(410.0, 500.0)
 	action_text = "Нажимай на сердечко, когда оно появляется! 12 секунд ♡"
+
+func _talk() -> void:
+	action_text = DIALOGUE_LINES[dialogue_index % DIALOGUE_LINES.size()]
+	dialogue_index += 1
+	JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.7)
+	JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.5)
+	expression = "shy" if dialogue_index % 3 == 0 else "happy"
+	expression_timer = 2.8
+	_sync_world_state()
+	_react(0.0)
