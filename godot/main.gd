@@ -55,9 +55,12 @@ var rhythm_score := 0
 var rhythm_window := 0.0
 var rhythm_target := Vector2(360, 520)
 var rhythm_cooldown := 0.0
+var pending_touch_zone := "body"
 
 func _ready() -> void:
 	_load_game()
+	var outfit_ids := ["home_black", "burgundy_lace", "midnight_blue", "warm_satin"]
+	outfit_index = maxi(0, outfit_ids.find(JiaWorld.outfit_id))
 	JiaWorld.event_started.connect(_on_world_event)
 	_sync_world_state()
 	get_viewport().size_changed.connect(queue_redraw)
@@ -439,12 +442,22 @@ func _handle_tap(pos: Vector2) -> void:
 		else:
 			action_text = "Чуть мимо — следи за сердечком"
 	elif pos.x > 190 and pos.x < 490 and pos.y > 360 and pos.y < 850:
+		if pos.y < 650:
+			pending_touch_zone = "head"
+		elif pos.x < 265 or pos.x > 435:
+			pending_touch_zone = "hand"
+		else:
+			pending_touch_zone = "body"
 		_interact_with_jia()
+	elif pos.x >= 22 and pos.x <= 362 and pos.y >= 150 and pos.y <= 262 and not JiaWorld.active_event.is_empty():
+		JiaWorld.complete_event()
+		_sync_world_state()
+		action_text = "Событие завершено! +5 монет ♡"
 	elif pos.x > 250 and pos.y < 300:
 		_greet()
 
 func _interact_with_jia() -> void:
-	var response: Dictionary = JiaWorld.touch_response("body")
+	var response: Dictionary = JiaWorld.touch_response(pending_touch_zone)
 	action_text = str(response.line)
 	expression = str(response.expression)
 	if energy < 12.0:
