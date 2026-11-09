@@ -63,13 +63,24 @@ jobs:
           unzip -q -o "$SOURCE_TEMPLATE" -d godot/android/build
           test -s godot/android/build/build.gradle
 
-      - name: Validate project scripts
-        run: godot --headless --path godot --editor --quit
+      - name: Validate project scripts and Android preset
+        shell: bash
+        run: |
+          set -euxo pipefail
+          godot --headless --path godot --editor --quit --verbose
+          godot --headless --path godot --check-only --script res://main.gd
+          godot --headless --path godot --editor --quit --verbose --path godot --export-debug "Android" /tmp/Jia-Place-validation.apk || {
+            echo "::error::Godot rejected the Android export preset. Full verbose output above."
+            exit 1
+          }
+          test -s /tmp/Jia-Place-validation.apk
 
       - name: Export Android APK
+        shell: bash
         run: |
+          set -euxo pipefail
           mkdir -p build
-          godot --verbose --headless --path godot --export-debug "Android" build/Jia-Place-debug.apk
+          godot --verbose --headless --path godot --export-debug "Android" "$PWD/build/Jia-Place-debug.apk"
           test -s build/Jia-Place-debug.apk
 
       - name: Upload APK
