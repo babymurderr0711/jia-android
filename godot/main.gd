@@ -60,6 +60,8 @@ var rhythm_target := Vector2(360, 520)
 var rhythm_cooldown := 0.0
 var pending_touch_zone := "body"
 @onready var character_rig: JiaSkeletonRig = $CharacterRig
+@onready var ambient_music: JiaAmbientMusic = $AmbientMusic
+var settings_open := false
 var dialogue_index := 0
 const DIALOGUE_LINES := [
 	"Как прошёл твой день? Я внимательно слушаю ♡",
@@ -353,6 +355,7 @@ func _draw_ui() -> void:
 	_panel(Rect2(475, 18, 225, 105))
 	draw_string(ThemeDB.fallback_font, Vector2(495, 63), _clock_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(495, 96), _day_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(656, 58), "⚙", HORIZONTAL_ALIGNMENT_LEFT, -1, 30, PALE)
 	# dialogue
 	_panel(Rect2(22, 150, 340, 112), PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(42, 193), action_text.left(27), HORIZONTAL_ALIGNMENT_LEFT, 300, 23, INK)
@@ -371,6 +374,14 @@ func _draw_ui() -> void:
 	var nav := ["Образ", "Ногти", "Педикюр", "Ритм ♡"]
 	for i in range(4):
 		_button(Rect2(18 + i * 176, 890, 164, 76), nav[i])
+	if settings_open:
+		_panel(Rect2(350, 350, 350, 340))
+		draw_string(ThemeDB.fallback_font, Vector2(382, 398), "Настройки", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
+		_button(Rect2(380, 425, 290, 62), "Музыка: " + ("Вкл" if ambient_music.enabled else "Выкл"))
+		_button(Rect2(380, 505, 135, 62), "Громкость −")
+		_button(Rect2(535, 505, 135, 62), "Громкость +")
+		draw_string(ThemeDB.fallback_font, Vector2(390, 602), "Уровень: %d%%" % int(ambient_music.volume_level * 100.0), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, PALE)
+		_button(Rect2(380, 615, 290, 52), "Закрыть")
 	if pose_editor:
 		_panel(Rect2(390, 170, 300, 190))
 		draw_string(ThemeDB.fallback_font, Vector2(410, 205), "Редактор поз", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
@@ -448,6 +459,19 @@ func _to_design(pos: Vector2) -> Vector2:
 	return (pos - Vector2((s.x - 720.0 * scale) * 0.5, (s.y - 1280.0 * scale) * 0.5)) / scale
 
 func _handle_tap(pos: Vector2) -> void:
+	if pos.x >= 640 and pos.y >= 18 and pos.y <= 120:
+		settings_open = not settings_open
+		return
+	if settings_open:
+		if Rect2(380, 425, 290, 62).has_point(pos):
+			ambient_music.set_enabled(not ambient_music.enabled)
+		elif Rect2(380, 505, 135, 62).has_point(pos):
+			ambient_music.set_volume(ambient_music.volume_level - 0.1)
+		elif Rect2(535, 505, 135, 62).has_point(pos):
+			ambient_music.set_volume(ambient_music.volume_level + 0.1)
+		elif Rect2(380, 615, 290, 52).has_point(pos):
+			settings_open = false
+		return
 	if pos.y > 890 and pos.y < 980:
 		var idx := clampi(int(pos.x / 176.0), 0, 3)
 		match idx:
