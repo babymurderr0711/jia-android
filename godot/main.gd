@@ -412,8 +412,8 @@ func _draw_ui() -> void:
 		_button(Rect2(380, 505, 135, 62), "Громкость −")
 		_button(Rect2(535, 505, 135, 62), "Громкость +")
 		draw_string(ThemeDB.fallback_font, Vector2(390, 602), "Уровень: %d%%" % int(ambient_music.volume_level * 100.0), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, PALE)
-		_button(Rect2(380, 575, 290, 52), "Звуковые эффекты: " + ("Вкл" if ambient_music.sfx_enabled else "Выкл"))
-		_button(Rect2(380, 665, 290, 52), "Закрыть")
+		_button(Rect2(380, 615, 290, 52), "Звуковые эффекты: " + ("Вкл" if ambient_music.sfx_enabled else "Выкл"))
+		_button(Rect2(380, 685, 290, 42), "Закрыть")
 	if pose_editor:
 		_panel(Rect2(390, 170, 300, 190))
 		draw_string(ThemeDB.fallback_font, Vector2(410, 205), "Редактор поз", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
@@ -507,11 +507,11 @@ func _handle_tap(pos: Vector2) -> void:
 			ambient_music.set_volume(ambient_music.volume_level + 0.1)
 			JiaWorld.music_volume = ambient_music.volume_level
 			JiaWorld.save_world()
-		elif Rect2(380, 575, 290, 52).has_point(pos):
+		elif Rect2(380, 615, 290, 52).has_point(pos):
 			ambient_music.sfx_enabled = not ambient_music.sfx_enabled
 			JiaWorld.sfx_enabled = ambient_music.sfx_enabled
 			JiaWorld.save_world()
-		elif Rect2(380, 665, 290, 52).has_point(pos):
+		elif Rect2(380, 685, 290, 42).has_point(pos):
 			settings_open = false
 		return
 	if pos.y > 890 and pos.y < 980:
