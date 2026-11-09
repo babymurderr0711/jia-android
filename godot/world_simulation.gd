@@ -27,7 +27,6 @@ var completed_events: Array[String] = []
 var active_event := ""
 var _minute_accumulator := 0.0
 var _autosave := 0.0
-var _last_event_day := -1
 
 const EVENTS := [
 	{"id":"morning_hello","from":420,"to":600,"title":"Доброе утро","line":"Я только проснулась. Посидишь со мной немного?","need":"social"},
@@ -55,7 +54,6 @@ func advance_minute() -> void:
 	if minutes >= DAY_MINUTES:
 		minutes = 0
 		day += 1
-		_last_event_day = -1
 	# Needs evolve slowly and depend on time of day.
 	hunger = clampf(hunger - 0.012, MIN_NEED, MAX_NEED)
 	energy = clampf(energy - (0.008 if minutes < 420 or minutes > 1320 else 0.003), MIN_NEED, MAX_NEED)
@@ -68,15 +66,14 @@ func advance_minute() -> void:
 	_check_schedule()
 
 func _check_schedule() -> void:
-	if _last_event_day == day:
-		return
+		if not active_event.is_empty():
+			return
 	for event in EVENTS:
 		if minutes >= int(event.from) and minutes < int(event.to):
 			var event_id: String = event.id
 			if not completed_events.has(event_id + "_" + str(day)):
 				active_event = event_id
-				_last_event_day = day
-				event_started.emit(event_id, str(event.title), str(event.line))
+						event_started.emit(event_id, str(event.title), str(event.line))
 				return
 
 func complete_event() -> void:
