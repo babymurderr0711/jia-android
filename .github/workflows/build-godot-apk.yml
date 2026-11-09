@@ -1,0 +1,37 @@
+name: Build Jia Godot Android APK
+
+on:
+  push:
+    branches: [godot-main]
+    paths:
+      - "godot/**"
+      - ".github/workflows/build-godot-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Android export dependencies
+        run: |
+          mkdir -p ~/.config/godot
+          godot --version
+      - name: Export Android APK
+        run: |
+          mkdir -p build
+          godot --headless --path godot --editor --quit
+          godot --headless --path godot --export-debug "Android" build/Jia-Place-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jia-Place-Godot-Android-APK
+          path: build/Jia-Place-debug.apk
+          if-no-files-found: error
+          retention-days: 14
