@@ -1,0 +1,28 @@
+name: Validate Jia Godot project
+
+on:
+  push:
+    branches: [godot-main]
+    paths:
+      - "godot/**"
+      - ".github/workflows/validate-godot.yml"
+  pull_request:
+    branches: [godot-main]
+    paths:
+      - "godot/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Parse project and scripts
+        shell: bash
+        run: |
+          set -euxo pipefail
+          godot --headless --path godot --editor --quit
+          godot --headless --path godot --check-only --script res://main.gd
+          godot --headless --path godot --check-only --script res://world_simulation.gd
