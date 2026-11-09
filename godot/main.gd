@@ -329,10 +329,12 @@ func _draw_ui() -> void:
 	for i in range(4):
 		_button(Rect2(500, 400 + i * 92, 200, 72), labels[i])
 	# stats
-	_panel(Rect2(18, 1000, 280, 230))
-	_draw_stat("☺ Настроение", mood, 1040)
-	_draw_stat("♥ Близость", closeness, 1105)
-	_draw_stat("★ Энергия", energy, 1170)
+	_panel(Rect2(18, 980, 280, 250))
+	_draw_stat("☺ Настроение", mood, 1018)
+	_draw_stat("♥ Близость", closeness, 1062)
+	_draw_stat("★ Энергия", energy, 1106)
+	_draw_stat("🍓 Сытость", JiaWorld.hunger, 1150)
+	_draw_stat("✧ Гигиена", JiaWorld.hygiene, 1194)
 	# bottom nav
 	var nav := ["Образ", "Ногти", "Педикюр", "Ритм ♡"]
 	for i in range(4):
@@ -379,9 +381,9 @@ func _button(r: Rect2, label: String) -> void:
 	draw_string(ThemeDB.fallback_font, Vector2(r.position.x + 12, r.position.y + 44), label, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 24, 21, INK)
 
 func _draw_stat(label: String, value: float, y: float) -> void:
-	draw_string(ThemeDB.fallback_font, Vector2(35, y), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, PALE)
-	draw_rect(Rect2(35, y + 12, 235, 14), INK)
-	draw_rect(Rect2(35, y + 12, 235.0 * value / 100.0, 14), PINK)
+	draw_string(ThemeDB.fallback_font, Vector2(35, y), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, PALE)
+	draw_rect(Rect2(35, y + 7, 235, 9), INK)
+	draw_rect(Rect2(35, y + 7, 235.0 * clampf(value, 0.0, 100.0) / 100.0, 9), PINK)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch and event.pressed:
