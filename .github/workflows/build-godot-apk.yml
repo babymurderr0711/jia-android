@@ -28,7 +28,7 @@ jobs:
           wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -O /tmp/templates.tpz
           mkdir -p /tmp/godot-templates
           unzip -q /tmp/templates.tpz -d /tmp/godot-templates
-          find /tmp/godot-templates -type f \\( -name 'android_debug.apk' -o -name 'android_release.apk' \\) -exec cp {} "$HOME/.local/share/godot/export_templates/4.4.1.stable/" \\;
+          cp /tmp/godot-templates/templates/* "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
           test -s "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_debug.apk"
           test -s "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_release.apk"
 
