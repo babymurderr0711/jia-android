@@ -382,7 +382,7 @@ func _draw_ui() -> void:
 	# Header
 	_panel(Rect2(18, 18, 405, 105))
 	draw_string(ThemeDB.fallback_font, Vector2(42, 63), "Jia ♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, PALE)
-	draw_string(ThemeDB.fallback_font, Vector2(42, 101), "Lv. 1   ♥ " + str(int(closeness)) + "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(42, 101), "Lv. " + str(1 + int(closeness / 20.0)) + "   ♥ " + str(int(closeness)) + "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, PALE)
 	_panel(Rect2(475, 18, 225, 105))
 	draw_string(ThemeDB.fallback_font, Vector2(495, 63), _clock_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(495, 96), _day_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
