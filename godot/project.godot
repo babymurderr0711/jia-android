@@ -1,0 +1,21 @@
+config_version=5
+
+[application]
+config/name="Jia's Place"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/description="Jia: Little Pixel Life — animated character prototype"
+
+[display]
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=450
+window/size/window_height_override=800
+window/stretch/mode="canvas_items"
+window/handheld/orientation=1
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.09, 0.055, 0.09, 1)
