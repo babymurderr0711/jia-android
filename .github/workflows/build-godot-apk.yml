@@ -53,6 +53,9 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
+      - name: Install Gradle Android build template
+        run: godot --headless --path godot --editor --install-android-build-template
+
       - name: Validate project scripts
         run: godot --headless --path godot --editor --quit
 
