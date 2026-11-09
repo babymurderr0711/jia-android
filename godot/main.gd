@@ -130,7 +130,7 @@ func _draw_character() -> void:
 		draw_line(p + Vector2(15, -5), p + Vector2(45, -5), INK, 5)
 	else:
 		_draw_ellipse(p + Vector2(-28, -4), Vector2(18, 10), Color("#f3d3b9"))
-		draw_ellipse(p + Vector2(28, -4), Vector2(18, 10), Color("#f3d3b9"))
+		_draw_ellipse(p + Vector2(28, -4), Vector2(18, 10), Color("#f3d3b9"))
 		draw_circle(p + Vector2(-25, -4), 6, Color("#6a7549"))
 		draw_circle(p + Vector2(30, -4), 6, Color("#6a7549"))
 		draw_circle(p + Vector2(-25, -4), 3, INK)
@@ -161,7 +161,7 @@ func _draw_hand(pos: Vector2, style: int) -> void:
 		draw_line(tip - Vector2(0, 5), tip, [Color("#17121d"), Color("#e83e72"), Color("#f4c2d9"), Color("#9d1d45")][style], 4, true)
 
 func _draw_foot(pos: Vector2, style: int) -> void:
-	draw_ellipse(pos, Vector2(28, 13), SKIN)
+	_draw_ellipse(pos, Vector2(28, 13), SKIN)
 	for i in range(5):
 		draw_circle(pos + Vector2(-18 + i * 8, -5 - (i % 2) * 2), 4, [Color("#17121d"), Color("#e83e72"), Color("#f4c2d9"), Color("#9d1d45")][style])
 
