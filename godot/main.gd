@@ -56,6 +56,7 @@ var rhythm_window := 0.0
 var rhythm_target := Vector2(360, 520)
 var rhythm_cooldown := 0.0
 var pending_touch_zone := "body"
+@onready var character_rig: JiaSkeletonRig = $CharacterRig
 var dialogue_index := 0
 const DIALOGUE_LINES := [
 	"Как прошёл твой день? Я внимательно слушаю ♡",
@@ -72,6 +73,7 @@ func _ready() -> void:
 	outfit_index = maxi(0, outfit_ids.find(JiaWorld.outfit_id))
 	JiaWorld.event_started.connect(_on_world_event)
 	_sync_world_state()
+	character_rig.set_pose(pose_index)
 	get_viewport().size_changed.connect(queue_redraw)
 	queue_redraw()
 
@@ -156,7 +158,6 @@ func _draw() -> void:
 	var scale := minf(s.x / 720.0, s.y / 1280.0)
 	draw_set_transform(Vector2((s.x - 720.0 * scale) * 0.5, (s.y - 1280.0 * scale) * 0.5), 0.0, Vector2.ONE * scale)
 	_draw_room()
-	_draw_character()
 	_draw_ui()
 
 func _draw_room() -> void:
@@ -510,6 +511,7 @@ func _interact_with_jia() -> void:
 
 func _next_pose() -> void:
 	pose_index = (pose_index + 1) % pose_names.size()
+	character_rig.set_pose(pose_index)
 	pose_editor = false
 	arm_pose = 0.0
 	leg_pose = 0.0
@@ -577,6 +579,8 @@ func _sync_world_state() -> void:
 	game_minutes = JiaWorld.minutes
 	manicure = JiaWorld.nail_style % 4
 	pedicure = JiaWorld.toe_style % 4
+	var wardrobe_colors := [Color("#24111f"), Color("#5b1c38"), Color("#27344b"), Color("#6b4a35")]
+	character_rig.set_appearance(wardrobe_colors[outfit_index % wardrobe_colors.size()], manicure, pedicure, expression)
 
 func _on_world_event(_event_id: String, title: String, line: String) -> void:
 	action_text = title + ": " + line
