@@ -162,7 +162,7 @@ func load_world() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","music_enabled","music_volume","inventory"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","music_enabled","music_volume","sfx_enabled","inventory"]:
 		if cfg.has_section_key("world", key):
 			set(key, cfg.get_value("world", key))
 	if cfg.has_section_key("world", "completed_events"):
