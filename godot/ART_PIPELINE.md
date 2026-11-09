@@ -1,37 +1,53 @@
-# Jia reference artwork and animation pipeline
+# Jia's Place — character art and animation pipeline
 
-## Canonical source
+## Canonical source and constraints
 
-The approved character reference is the transparent PNG supplied in the conversation (1245 x 1040 RGBA). Preserve its face, copper-red hairstyle, proportions, linework, palette and pixel texture. Do not redraw or substitute a different character.
+The approved source is the transparent 1245×1040 PNG supplied in the conversation. Preserve the face, copper-red hairstyle, proportions, linework, palette and texture. The original must remain untouched. Do not substitute a generated or generic character.
 
-The current source is a single flattened pose. It is suitable as a visual reference and temporary portrait, but not as a complete skeletal rig.
+The source is a single flattened pose. It is not possible to obtain clean independent limb motion by simply stretching or rotating the whole bitmap. A proper rig needs aligned transparent layers and reconstruction of the anatomy hidden in the original pose.
 
-## Layer plan
+## Current implementation (procedural interaction prototype)
 
-Prepare the character as aligned transparent layers on one shared canvas:
+- Idle motion: breathing, body bob, blink timing, eye gaze and hair sway.
+- Facial reactions: soft, happy, shy, surprised and sleepy states.
+- Joint-segment drawing: upper/lower arm segments with elbow points and upper/lower leg segments with knee points.
+- Pose editor: independent arm and leg bend controls, plus pose presets.
+- Interaction: drag-based massage progress, reaction pulse, mood / closeness / energy feedback.
+- Customization: manicure and pedicure color overlays.
 
-1. rear hair
-2. rear torso / hips
-3. upper legs and lower legs
-4. neck and head base
-5. face features: eyes open, eyes closed, brows and mouth expressions
-6. front hair and fringe
-7. upper arms, forearms and hands
-8. outfit details
-9. feet and nail overlays
+This pass makes the current placeholder react and articulate more convincingly. It is not yet a production Skeleton2D rig and it does not yet render the approved reference artwork.
 
-Keep original canvas dimensions and origin so layers can be recombined without drift. Reconstruct only occluded anatomy needed for the supported motion range; do not stretch the flattened original to fake joint movement.
+## Four parallel production tracks
 
-## First animation pass
+### 1. Canonical artwork import
+- Bring the exact approved PNG into godot/assets/jia/source/.
+- Preserve the original file as the immutable source.
+- Create aligned transparent layers on the original canvas: rear hair, torso/hips, legs, head/face, fringe/front hair, upper arms, forearms/hands, outfit details, feet and nail overlays.
+- Keep a source-to-layer manifest so the pieces can be revised without losing alignment.
 
-- idle: subtle breathing and hair sway
-- face: blink and a small set of mouth / expression swaps
-- pose set: original kneeling pose first, then seated and standing only after the hidden body parts are reconstructed
-- interaction: hand/foot response animations tied to actual interaction zones
-- customization: manicure and pedicure overlays attached to the corresponding hand/foot layers
+### 2. Skeleton and joint rig
+- Build a Skeleton2D hierarchy for torso, neck/head, shoulders, elbows, wrists, hips, knees and ankles.
+- Attach the separated art layers to the corresponding bones.
+- Reconstruct hidden anatomy rather than distorting the original bitmap.
+- Keep manicure and pedicure overlays parented to the hand and foot bones.
 
-## Godot implementation
+### 3. Animation set
+- AnimationPlayer clips: idle breathing, blink, gaze, hair sway, head turns, arm gestures, leg/foot movement, pose transitions and reactions.
+- Blend pose transitions instead of snapping between presets.
+- Use additive micro-motion for breathing and hair on top of the selected pose.
+- Tie animation states to mood, closeness and energy.
 
-Use Skeleton2D / Bone2D for limbs once the artwork is separated. Use AnimationPlayer for idle, blink, pose transitions and reactions. Keep the source PNG untouched as the canonical reference asset.
+### 4. Pose editor and interactions
+- Expand the current arm/leg controls into per-joint editing with saveable pose presets.
+- Add touch zones for head, hands, feet and body with distinct feedback animations.
+- Make massage and beauty interactions visible on the character, not just in dialogue or counters.
+- Ensure nail overlays follow the animated fingers and toes.
 
-Until separated layers are available, the procedural character in main.gd remains a temporary interaction prototype, not the final Jia artwork or a production rig.
+## Acceptance checks
+
+- The canonical art is visibly the same character as the approved reference.
+- No limb stretches unnaturally at elbows or knees during supported poses.
+- Hands and feet keep their nail overlays attached during movement.
+- Idle animation is continuous and subtle; expressions do not flicker.
+- Each interaction produces a visible character response and a state change.
+- The Android export completes and the APK is installable before calling the build finished.
