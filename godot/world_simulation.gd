@@ -106,6 +106,13 @@ func rest(duration_minutes: int = 120) -> void:
 	energy = clampf(energy + float(duration_minutes) * 0.22, 0.0, 100.0)
 	mood = clampf(mood + 8.0, 0.0, 100.0)
 	hygiene = clampf(hygiene - 2.0, 0.0, 100.0)
+	save_world()
+
+func freshen_up() -> void:
+	hygiene = clampf(hygiene + 28.0, 0.0, 100.0)
+	comfort = clampf(comfort + 8.0, 0.0, 100.0)
+	mood = clampf(mood + 3.0, 0.0, 100.0)
+	save_world()
 
 func touch_response(zone: String) -> Dictionary:
 	var result := {"line":"Мне приятно, что ты рядом ♡","expression":"happy","affection":1.0,"mood":1.0}
