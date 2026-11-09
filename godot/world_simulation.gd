@@ -22,6 +22,8 @@ var coins := 100
 var outfit_id := "home_black"
 var nail_style := 0
 var toe_style := 0
+var music_enabled := true
+var music_volume := 0.35
 var inventory: Dictionary = {"tea": 2, "snack": 3, "gift_flower": 1}
 var completed_events: Array[String] = []
 var active_event := ""
@@ -144,7 +146,7 @@ func set_nails(hands: int, feet: int) -> void:
 
 func save_world() -> void:
 	var cfg := ConfigFile.new()
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","inventory","completed_events"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","music_enabled","music_volume","inventory","completed_events"]:
 		cfg.set_value("world", key, get(key))
 	cfg.save(SAVE_PATH)
 
@@ -152,7 +154,7 @@ func load_world() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","inventory"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","music_enabled","music_volume","inventory"]:
 		if cfg.has_section_key("world", key):
 			set(key, cfg.get_value("world", key))
 	if cfg.has_section_key("world", "completed_events"):
