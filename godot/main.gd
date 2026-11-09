@@ -45,13 +45,52 @@ var interaction_target := "none"
 var interaction_pulse := 0.0
 var hand_reach := 0.0
 var joint_sway := 0.0
+var save_clock := 0.0
+var game_minutes := 1367
+var elapsed_game_seconds := 0.0
 
 func _ready() -> void:
+	_load_game()
 	get_viewport().size_changed.connect(queue_redraw)
 	queue_redraw()
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
+		_save_game()
+
+func _save_game() -> void:
+	var data := ConfigFile.new()
+	data.set_value("player", "mood", mood)
+	data.set_value("player", "closeness", closeness)
+	data.set_value("player", "energy", energy)
+	data.set_value("player", "coins", coins)
+	data.set_value("player", "pose_index", pose_index)
+	data.set_value("player", "manicure", manicure)
+	data.set_value("player", "pedicure", pedicure)
+	data.set_value("world", "game_minutes", game_minutes)
+	data.save("user://jia_place_save.cfg")
+
+func _load_game() -> void:
+	var data := ConfigFile.new()
+	if data.load("user://jia_place_save.cfg") != OK:
+		return
+	mood = float(data.get_value("player", "mood", mood))
+	closeness = float(data.get_value("player", "closeness", closeness))
+	energy = float(data.get_value("player", "energy", energy))
+	coins = int(data.get_value("player", "coins", coins))
+	pose_index = int(data.get_value("player", "pose_index", pose_index)) % pose_names.size()
+	manicure = int(data.get_value("player", "manicure", manicure)) % 4
+	pedicure = int(data.get_value("player", "pedicure", pedicure)) % 4
+	game_minutes = int(data.get_value("world", "game_minutes", game_minutes))
+
 func _process(delta: float) -> void:
 	time_passed += delta
+	elapsed_game_seconds += delta
+	game_minutes = (game_minutes + int(delta * 2.0)) % 1440
+	save_clock += delta
+	if save_clock >= 12.0:
+		save_clock = 0.0
+		_save_game()
 	blink = maxf(0.0, blink - delta)
 	blink_cooldown -= delta
 	if blink_cooldown <= 0.0:
@@ -249,8 +288,8 @@ func _draw_ui() -> void:
 	draw_string(ThemeDB.fallback_font, Vector2(42, 63), "Jia ♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(42, 101), "Lv. 1   ♥ " + str(int(closeness)) + "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, PALE)
 	_panel(Rect2(475, 18, 225, 105))
-	draw_string(ThemeDB.fallback_font, Vector2(495, 63), "22:47 ☾", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
-	draw_string(ThemeDB.fallback_font, Vector2(495, 96), "Пн, 10 ноября", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(495, 63), _clock_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(495, 96), _day_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
 	# dialogue
 	_panel(Rect2(22, 150, 340, 112), PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(42, 193), action_text.left(27), HORIZONTAL_ALIGNMENT_LEFT, 300, 23, INK)
@@ -280,6 +319,15 @@ func _draw_ui() -> void:
 		draw_rect(Rect2(338, 1095, 330, 18), INK)
 		draw_rect(Rect2(338, 1095, 330 * massage_progress, 18), PINK)
 	draw_string(ThemeDB.fallback_font, Vector2(540, 1225), "Монеты: " + str(coins), HORIZONTAL_ALIGNMENT_LEFT, -1, 20, PALE)
+
+func _clock_label() -> String:
+	var hour := int(game_minutes / 60)
+	var minute := game_minutes % 60
+	return "%02d:%02d ☾" % [hour, minute]
+
+func _day_label() -> String:
+	var day_number := 1 + int(elapsed_game_seconds / 900.0)
+	return "День %d · Jia's Place" % day_number
 
 func _panel(r: Rect2, fill: Color = Color("#281827")) -> void:
 	draw_rect(r, INK)
@@ -347,8 +395,21 @@ func _handle_tap(pos: Vector2) -> void:
 		else:
 			leg_pose = clampf(leg_pose + (-0.15 if pos.x < 540 else 0.15), -1.0, 1.0)
 		action_text = "Подбираем положение суставов ♡"
+	elif pos.x > 190 and pos.x < 490 and pos.y > 360 and pos.y < 850:
+		_interact_with_jia()
 	elif pos.x > 250 and pos.y < 300:
 		_greet()
+
+func _interact_with_jia() -> void:
+	if energy < 12.0:
+		action_text = "Я немного устала… Давай отдохнём? ♡"
+		expression = "sleepy"
+		return
+	energy = maxf(0.0, energy - 1.0)
+	mood = minf(100.0, mood + 1.5)
+	closeness = minf(100.0, closeness + 1.0)
+	action_text = "Хи-хи, щекотно! Я рада, что ты рядом ♡"
+	_react(1.5)
 
 func _next_pose() -> void:
 	pose_index = (pose_index + 1) % pose_names.size()
