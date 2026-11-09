@@ -52,7 +52,10 @@ var elapsed_game_seconds := 0.0
 var outfit_index := 0
 var rhythm_active := false
 var rhythm_score := 0
+var rhythm_attempts := 0
 var rhythm_window := 0.0
+var rhythm_phase_timer := 0.0
+var rhythm_target_visible := false
 var rhythm_target := Vector2(360, 520)
 var rhythm_cooldown := 0.0
 var pending_touch_zone := "body"
@@ -139,10 +142,20 @@ func _process(delta: float) -> void:
 	if rhythm_active:
 		rhythm_window -= delta
 		rhythm_cooldown -= delta
-		if rhythm_window <= 0.0:
+		rhythm_phase_timer -= delta
+		if rhythm_target_visible and rhythm_phase_timer <= 0.0:
+			rhythm_attempts += 1
+			rhythm_target_visible = false
+			rhythm_phase_timer = 0.45
+		elif not rhythm_target_visible and rhythm_phase_timer <= 0.0 and rhythm_attempts < 8:
+			rhythm_target_visible = true
+			rhythm_phase_timer = 0.85
+			rhythm_target = Vector2(405.0 + randf_range(-85.0, 85.0), 505.0 + randf_range(-65.0, 65.0))
+		if rhythm_attempts >= 8 or rhythm_window <= 0.0:
 			rhythm_active = false
-			action_text = "Раунд окончен! Попаданий: %d ♡" % rhythm_score
-			if rhythm_score >= 3:
+			rhythm_target_visible = false
+			action_text = "Ритм завершён: %d из %d попаданий ♡" % [rhythm_score, rhythm_attempts]
+			if rhythm_score >= 5:
 				JiaWorld.mood = minf(100.0, JiaWorld.mood + 6.0)
 				JiaWorld.affection = minf(100.0, JiaWorld.affection + 2.0)
 				JiaWorld.coins += 10
@@ -367,11 +380,12 @@ func _draw_ui() -> void:
 		_button(Rect2(550, 285, 125, 52), "Ноги +")
 	if rhythm_active:
 		_panel(Rect2(385, 170, 310, 190))
-		draw_string(ThemeDB.fallback_font, Vector2(410, 205), "Поймай ритм: %d/5" % rhythm_score, HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
-		draw_string(ThemeDB.fallback_font, Vector2(410, 240), "Осталось: %d сек" % ceili(rhythm_window), HORIZONTAL_ALIGNMENT_LEFT, -1, 19, PALE)
-		draw_circle(rhythm_target, 38, Color("#f18abd"))
-		draw_circle(rhythm_target, 25, Color("#ffd0e7"))
-		draw_string(ThemeDB.fallback_font, rhythm_target + Vector2(-10, 9), "♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 25, INK)
+		draw_string(ThemeDB.fallback_font, Vector2(410, 205), "Поймай ритм: %d/8" % rhythm_score, HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
+		draw_string(ThemeDB.fallback_font, Vector2(410, 240), "Попытка: %d/8" % mini(rhythm_attempts + 1, 8), HORIZONTAL_ALIGNMENT_LEFT, -1, 19, PALE)
+		if rhythm_target_visible:
+			draw_circle(rhythm_target, 38, Color("#f18abd"))
+			draw_circle(rhythm_target, 25, Color("#ffd0e7"))
+			draw_string(ThemeDB.fallback_font, rhythm_target + Vector2(-10, 9), "♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 25, INK)
 	if interaction_target != "none":
 		_panel(Rect2(315, 1040, 380, 115))
 		draw_string(ThemeDB.fallback_font, Vector2(338, 1080), "Массаж: " + str(int(massage_progress * 100.0)) + "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, PALE)
@@ -471,13 +485,15 @@ func _handle_tap(pos: Vector2) -> void:
 		_sync_world_state()
 		action_text = "Освежилась и чувствую себя лучше ♡"
 	elif rhythm_active:
-		if pos.distance_to(rhythm_target) <= 48.0 and rhythm_cooldown <= 0.0:
-			rhythm_score += 1
-			rhythm_cooldown = 0.18
-			rhythm_target = Vector2(410.0 + randf_range(-80.0, 80.0), 500.0 + randf_range(-70.0, 70.0))
-			action_text = "Точно в такт! Ещё раз ♡"
-		else:
-			action_text = "Чуть мимо — следи за сердечком"
+		if rhythm_target_visible:
+			rhythm_attempts += 1
+			rhythm_target_visible = false
+			rhythm_phase_timer = 0.45
+			if pos.distance_to(rhythm_target) <= 48.0:
+				rhythm_score += 1
+				action_text = "Точно в такт! ♡"
+			else:
+				action_text = "Чуть мимо — лови следующий удар"
 	elif pos.x > 190 and pos.x < 490 and pos.y > 360 and pos.y < 850:
 		if pos.y < 650:
 			pending_touch_zone = "head"
@@ -600,7 +616,10 @@ func _change_outfit() -> void:
 func _start_rhythm_game() -> void:
 	rhythm_active = true
 	rhythm_score = 0
-	rhythm_window = 12.0
+	rhythm_attempts = 0
+	rhythm_window = 15.0
+	rhythm_phase_timer = 0.85
+	rhythm_target_visible = true
 	rhythm_cooldown = 0.0
 	rhythm_target = Vector2(410.0, 500.0)
 	action_text = "Нажимай на сердечко, когда оно появляется! 12 секунд ♡"
