@@ -103,7 +103,10 @@ func consume(item_id: String) -> bool:
 	return true
 
 func rest(duration_minutes: int = 120) -> void:
-	energy = clampf(energy + float(duration_minutes) * 0.22, 0.0, 100.0)
+	var safe_duration := clampi(duration_minutes, 1, 480)
+	for _i in range(safe_duration):
+		advance_minute()
+	energy = clampf(energy + float(safe_duration) * 0.22, 0.0, 100.0)
 	mood = clampf(mood + 8.0, 0.0, 100.0)
 	hygiene = clampf(hygiene - 2.0, 0.0, 100.0)
 	save_world()
