@@ -6,6 +6,9 @@ run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/description="Jia: Little Pixel Life — animated character prototype"
 
+[autoload]
+JiaWorld="*res://world_simulation.gd"
+
 [display]
 window/size/viewport_width=720
 window/size/viewport_height=1280
