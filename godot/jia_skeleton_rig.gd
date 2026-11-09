@@ -20,6 +20,9 @@ var wardrobe_style := 0
 var outfit_surface: Polygon2D
 var outfit_top_surface: Polygon2D
 var nail_surfaces: Array[Polygon2D] = []
+var eye_surfaces: Array[Polygon2D] = []
+var cheek_surfaces: Array[Polygon2D] = []
+var mouth_line: Line2D
 const NAIL_COLORS := [Color("#17121d"), Color("#e83e72"), Color("#f4c2d9"), Color("#9d1d45")]
 
 func _ready() -> void:
@@ -47,7 +50,8 @@ func set_appearance(outfit: Color, hands: int, feet: int, face: String, outfit_s
 		outfit_top_surface.color = outfit_color
 		outfit_top_surface.polygon = _top_shape()
 	for i in range(nail_surfaces.size()):
-		nail_surfaces[i].color = NAIL_COLORS[manicure if i < 4 else pedicure]
+		nail_surfaces[i].color = NAIL_COLORS[manicure if i < 10 else pedicure]
+	_update_face()
 
 func _build_skeleton() -> void:
 	skeleton = Skeleton2D.new()
@@ -166,11 +170,46 @@ func _add_face(head: Bone2D) -> void:
 		eye.polygon = _ellipse(Vector2(x,-4),Vector2(5,8))
 		eye.color = Color("#6a7549")
 		head.add_child(eye)
-	var mouth := Line2D.new()
-	mouth.points = PackedVector2Array([Vector2(-8,22),Vector2(0,26),Vector2(8,22)])
-	mouth.width = 2.5
-	mouth.default_color = Color("#8b3946")
-	head.add_child(mouth)
+		eye_surfaces.append(eye)
+		var brow := Line2D.new()
+		brow.points = PackedVector2Array([Vector2(x-7,-17),Vector2(x,-20),Vector2(x+7,-17)])
+		brow.width = 3.0
+		brow.default_color = Color("#5a2a28")
+		head.add_child(brow)
+	for x in [-1.0, 1.0]:
+		var cheek := Polygon2D.new()
+		cheek.polygon = _ellipse(Vector2(x * 30.0,15.0),Vector2(8,4))
+		cheek.color = Color("#e77c83",0.0)
+		head.add_child(cheek)
+		cheek_surfaces.append(cheek)
+	mouth_line = Line2D.new()
+	mouth_line.points = PackedVector2Array([Vector2(-8,22),Vector2(0,26),Vector2(8,22)])
+	mouth_line.width = 2.5
+	mouth_line.default_color = Color("#8b3946")
+	head.add_child(mouth_line)
+	_update_face()
+
+func _update_face() -> void:
+	for i in range(eye_surfaces.size()):
+		var x := -17.0 if i == 0 else 17.0
+		var radius := Vector2(5,2) if expression == "sleepy" else Vector2(5,8)
+		eye_surfaces[i].polygon = _ellipse(Vector2(x,-4),radius)
+	for cheek in cheek_surfaces:
+		cheek.color = Color("#e77c83",0.48 if expression == "shy" else 0.0)
+	if is_instance_valid(mouth_line):
+		match expression:
+			"surprised":
+				mouth_line.points = PackedVector2Array([Vector2(-4,22),Vector2(0,26),Vector2(4,22)])
+				mouth_line.width = 4.0
+			"sleepy":
+				mouth_line.points = PackedVector2Array([Vector2(-6,25),Vector2(0,25),Vector2(6,25)])
+				mouth_line.width = 2.0
+			"shy":
+				mouth_line.points = PackedVector2Array([Vector2(-8,23),Vector2(0,28),Vector2(8,23)])
+				mouth_line.width = 3.0
+			_:
+				mouth_line.points = PackedVector2Array([Vector2(-8,22),Vector2(0,26),Vector2(8,22)])
+				mouth_line.width = 2.5
 
 func _add_hand_shape(parent: Bone2D) -> void:
 	_add_surface(parent, _ellipse(Vector2(0,14),Vector2(13,16)), SKIN)
@@ -205,6 +244,7 @@ func _ellipse(center: Vector2, radius: Vector2) -> PackedVector2Array:
 	return points
 
 func _animate_bones() -> void:
+	_update_face()
 	var breath := sin(clock * 1.55)
 	var idle_sway := sin(clock * 0.72)
 	var pose_targets := [
