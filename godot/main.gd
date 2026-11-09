@@ -325,7 +325,7 @@ func _draw_ui() -> void:
 	_panel(Rect2(22, 150, 340, 112), PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(42, 193), action_text.left(27), HORIZONTAL_ALIGNMENT_LEFT, 300, 23, INK)
 	# right actions
-	var labels := ["Позировать", "Массаж", "Красота", "Подарок"]
+	var labels := ["Позировать", "Массаж", "Чай", "Подарок"]
 	for i in range(4):
 		_button(Rect2(500, 400 + i * 92, 200, 72), labels[i])
 	# stats
@@ -427,7 +427,12 @@ func _handle_tap(pos: Vector2) -> void:
 		match idx:
 			0: _next_pose()
 			1: _start_massage()
-			2: _change_manicure()
+			2:
+				if JiaWorld.consume("tea"):
+					action_text = "Чай согрел меня. Спасибо ♡"
+					_sync_world_state()
+				else:
+					action_text = "Чай закончился — нужно пополнить запасы"
 			3: _gift()
 	elif pose_editor and pos.x >= 390 and pos.y >= 215 and pos.y < 355:
 		if pos.y < 280:
@@ -435,6 +440,16 @@ func _handle_tap(pos: Vector2) -> void:
 		else:
 			leg_pose = clampf(leg_pose + (-0.15 if pos.x < 540 else 0.15), -1.0, 1.0)
 		action_text = "Подбираем положение суставов ♡"
+	elif pos.x >= 18 and pos.x <= 298 and pos.y >= 1130 and pos.y < 1180:
+		if JiaWorld.consume("snack"):
+			action_text = "Перекусила — теперь больше сил ♡"
+			_sync_world_state()
+		else:
+			action_text = "Перекусы закончились"
+	elif pos.x >= 18 and pos.x <= 298 and pos.y >= 1180 and pos.y < 1235:
+		JiaWorld.freshen_up()
+		_sync_world_state()
+		action_text = "Освежилась и чувствую себя лучше ♡"
 	elif rhythm_active:
 		if pos.distance_to(rhythm_target) <= 48.0 and rhythm_cooldown <= 0.0:
 			rhythm_score += 1
