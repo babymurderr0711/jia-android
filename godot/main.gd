@@ -233,6 +233,18 @@ func _draw_character() -> void:
 	var outfit_colors := [Color("#24111f"), Color("#5b1c38"), Color("#27344b"), Color("#6b4a35")]
 	var outfit_color: Color = outfit_colors[outfit_index % outfit_colors.size()]
 	draw_colored_polygon(PackedVector2Array([p + Vector2(-68, 65), p + Vector2(68, 65), p + Vector2(55, 175), p + Vector2(0, 150), p + Vector2(-55, 175)]), outfit_color)
+	# Visible lower garment layer changes with the selected wardrobe set.
+	var garment := PackedVector2Array()
+	if outfit_index == 0:
+		garment = PackedVector2Array([p + Vector2(-58, 205), p + Vector2(58, 205), p + Vector2(74, 270), p + Vector2(0, 292), p + Vector2(-74, 270)])
+	elif outfit_index == 1:
+		garment = PackedVector2Array([p + Vector2(-60, 205), p + Vector2(60, 205), p + Vector2(66, 260), p + Vector2(0, 278), p + Vector2(-66, 260)])
+	elif outfit_index == 2:
+		garment = PackedVector2Array([p + Vector2(-60, 205), p + Vector2(60, 205), p + Vector2(82, 250), p + Vector2(0, 268), p + Vector2(-82, 250)])
+	else:
+		garment = PackedVector2Array([p + Vector2(-68, 190), p + Vector2(68, 190), p + Vector2(76, 300), p + Vector2(0, 320), p + Vector2(-76, 300)])
+	draw_colored_polygon(garment, outfit_color.darkened(0.12))
+	draw_polyline(garment, INK, 4.0, true)
 	draw_line(p + Vector2(-55, 70), p + Vector2(-90, 0), INK, 6)
 	draw_line(p + Vector2(55, 70), p + Vector2(90, 0), INK, 6)
 	# neck and face
