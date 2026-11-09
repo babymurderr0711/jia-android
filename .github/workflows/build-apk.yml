@@ -1,0 +1,98 @@
+name: Build Jia Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create Capacitor wrapper
+        run: |
+          mkdir -p www
+          cat > package.json <<'EOF'
+          {
+            "name": "jia-little-pixel-life",
+            "version": "1.0.0",
+            "private": true,
+            "description": "Android wrapper for Jia: Little Pixel Life",
+            "scripts": {
+              "build": "echo Web app is hosted remotely"
+            },
+            "dependencies": {
+              "@capacitor/android": "^7.4.3",
+              "@capacitor/core": "^7.4.3"
+            },
+            "devDependencies": {
+              "@capacitor/cli": "^7.4.3"
+            }
+          }
+          EOF
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.jia.littlepixellife",
+            "appName": "Jia: Little Pixel Life",
+            "webDir": "www",
+            "server": {
+              "url": "https://jia-little-pixel-life-fd635f1e.base44.app",
+              "cleartext": false,
+              "allowNavigation": ["jia-little-pixel-life-fd635f1e.base44.app", "*.base44.app"]
+            },
+            "android": {
+              "allowMixedContent": false
+            }
+          }
+          EOF
+          cat > www/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+            <meta name="theme-color" content="#17121d">
+            <title>Jia: Little Pixel Life</title>
+          </head>
+          <body style="margin:0;background:#17121d"></body>
+          </html>
+          EOF
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jia-Little-Pixel-Life-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
