@@ -1,11 +1,6 @@
 name: Build Jia Godot Android APK
 
 on:
-  push:
-    branches: [godot-main]
-    paths:
-      - "godot/**"
-      - ".github/workflows/build-godot-apk.yml"
   workflow_dispatch:
 
 permissions:
