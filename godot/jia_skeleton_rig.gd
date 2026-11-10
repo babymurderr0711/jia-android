@@ -3,6 +3,7 @@ class_name JiaSkeletonRig
 
 # Articulated Skeleton2D rig using approved painted cutout layers.
 # Body regions are attached to their corresponding joint bones.
+# Hands are independent wrist children; forearms stop at the wrist pivots.
 const SKIN := Color("#e99a83")
 const HAIR := Color("#a83f2d")
 const INK := Color("#21131e")
