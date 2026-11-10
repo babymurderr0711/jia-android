@@ -50,6 +50,16 @@ jobs:
           JAVA_BIN="$(readlink -f "$(command -v java)")"
           JAVA_HOME_DIR="$(dirname "$(dirname "$JAVA_BIN")")"
           ANDROID_SDK_DIR="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          export ANDROID_HOME="$ANDROID_SDK_DIR"
+          export ANDROID_SDK_ROOT="$ANDROID_SDK_DIR"
+          export JAVA_HOME="$JAVA_HOME_DIR"
+          test -x "$ANDROID_SDK_DIR/platform-tools/adb"
+          test -f "$ANDROID_SDK_DIR/platforms/android-33/android.jar"
+          test -x "$ANDROID_SDK_DIR/build-tools/33.0.2/zipalign"
+          test -x "$ANDROID_SDK_DIR/build-tools/33.0.2/apksigner"
+          test -x "$JAVA_HOME_DIR/bin/javac"
+          echo "Resolved Android SDK: $ANDROID_SDK_DIR"
+          echo "Resolved Java home: $JAVA_HOME_DIR"
           mkdir -p "$HOME/.config/godot"
           cat > "$HOME/.config/godot/editor_settings-4.4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
@@ -76,11 +86,21 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+          echo "Android SDK contents:"
+          ls -la "$ANDROID_HOME"
+          echo "Godot editor settings:"
+          cat "$HOME/.config/godot/editor_settings-4.4.tres"
           godot --headless --path godot --editor --quit --verbose
           godot --headless --path godot --quit-after 3
           export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
           export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
           godot --headless --path godot --verbose --export-debug "Android" /tmp/Jia-Place-validation.apk
           test -s /tmp/Jia-Place-validation.apk
 
