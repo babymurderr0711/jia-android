@@ -56,6 +56,9 @@ func _run_tests() -> void:
 	await process_frame
 	_check(rig.pose == 3, "skeleton accepts a pose transition")
 	_check(absf((rig.bones["Root"] as Bone2D).rotation) > 0.001, "pose animates the root bone")
+	rig.play_gesture("wave", 2.0)
+	await create_timer(0.5).timeout
+	_check(absf((rig.bones["Wrist_R"] as Bone2D).rotation) > 0.01, "wave gesture articulates the wrist bone")
 	for bone_name in rig.bones:
 		var bone := rig.bones[bone_name] as Bone2D
 		_check(is_finite(bone.rotation), "bone rotation remains finite: " + str(bone_name))
