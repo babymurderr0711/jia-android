@@ -40,7 +40,7 @@ func _run_tests() -> void:
 	await process_frame
 	_check(rig.bones.size() >= 18, "skeleton contains full joint hierarchy")
 	var art_sprites := rig.skeleton.find_children("JiaArt_*", "Sprite2D", true, false)
-	_check(art_sprites.size() == 10, "all ten painted body cutouts attach to the rig")
+	_check(art_sprites.size() == 12, "all twelve painted body cutouts attach to the rig")
 	for sprite_node in art_sprites:
 		var art_sprite := sprite_node as Sprite2D
 		_check(art_sprite.texture != null, "painted cutout texture is loaded: " + art_sprite.name)
