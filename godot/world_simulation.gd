@@ -4,6 +4,8 @@ class_name JiaWorldSimulation
 signal minute_changed(minutes: int)
 signal event_started(event_id: String, title: String, line: String)
 signal need_changed(need: String, value: float)
+signal relationship_changed(stage: String, affection: float)
+signal inventory_changed(item_id: String, count: int)
 
 const SAVE_PATH := "user://jia_world.cfg"
 const DAY_MINUTES := 1440
@@ -29,13 +31,17 @@ var inventory: Dictionary = {"tea": 2, "snack": 3, "gift_flower": 1}
 var completed_events: Array[String] = []
 var active_event := ""
 var last_reward_day := 0
+var last_social_day := 0
+var social_actions_today := 0
+var event_rewards_today := 0
 var _minute_accumulator := 0.0
 var _autosave := 0.0
 
 const EVENTS := [
 	{"id":"morning_hello","from":420,"to":600,"title":"Доброе утро","line":"Я только проснулась. Посидишь со мной немного?","need":"social"},
 	{"id":"tea_time","from":840,"to":1020,"title":"Время чая","line":"Я приготовила чай. Может, устроим небольшой перерыв?","need":"comfort"},
-	{"id":"evening_chat","from":1080,"to":1320,"title":"Вечерний разговор","line":"День почти закончился. Расскажешь, как ты?","need":"social"}
+	{"id":"evening_chat","from":1080,"to":1320,"title":"Вечерний разговор","line":"День почти закончился. Расскажешь, как ты?","need":"social"},
+	{"id":"night_calm","from":1320,"to":1439,"title":"Тихий вечер","line":"Давай немного побудем в тишине перед сном ♡","need":"comfort"}
 ]
 
 func _ready() -> void:
@@ -86,6 +92,10 @@ func complete_event() -> void:
 	completed_events.append(active_event + "_" + str(day))
 	active_event = ""
 	coins += 5
+	affection = clampf(affection + 1.0, 0.0, 100.0)
+	mood = clampf(mood + 2.0, 0.0, 100.0)
+	event_rewards_today += 5
+	relationship_changed.emit(relationship_stage(), affection)
 	save_world()
 
 func consume(item_id: String) -> bool:
@@ -103,6 +113,8 @@ func consume(item_id: String) -> bool:
 			affection = clampf(affection + 8.0, 0.0, 100.0)
 			mood = clampf(mood + 12.0, 0.0, 100.0)
 	need_changed.emit(item_id, float(inventory[item_id]))
+	inventory_changed.emit(item_id, int(inventory[item_id]))
+	relationship_changed.emit(relationship_stage(), affection)
 	save_world()
 	return true
 
@@ -142,6 +154,8 @@ func touch_response(zone: String) -> Dictionary:
 	affection = clampf(affection + float(result.affection), 0.0, 100.0)
 	mood = clampf(mood + float(result.mood), 0.0, 100.0)
 	energy = clampf(energy - 0.5, 0.0, 100.0)
+	_register_social_action()
+	relationship_changed.emit(relationship_stage(), affection)
 	return result
 
 func relationship_stage() -> String:
@@ -149,6 +163,21 @@ func relationship_stage() -> String:
 	if affection >= 70.0: return "Близость"
 	if affection >= 45.0: return "Дружба"
 	return "Знакомство"
+
+func _register_social_action() -> void:
+	if last_social_day != day:
+		last_social_day = day
+		social_actions_today = 0
+	social_actions_today += 1
+
+func relationship_dialogue() -> Array[String]:
+	if affection >= 90.0:
+		return ["С тобой я могу быть собой. Спасибо, что бережёшь это доверие ♡", "Мне спокойно рядом с тобой. Давай побудем ещё немного?", "Кажется, у нас появились свои маленькие традиции"]
+	if affection >= 70.0:
+		return ["Я уже привыкла к нашим уютным вечерам ♡", "Мне нравится, как хорошо мы понимаем друг друга", "Давай выберем что-нибудь только для нас"]
+	if affection >= 45.0:
+		return ["Мне нравится узнавать тебя постепенно", "Расскажи, что сегодня было самым приятным?", "С тобой становится всё уютнее ♡"]
+	return ["Давай знакомиться без спешки", "Как прошёл твой день? Я внимательно слушаю", "Рада, что ты заглянул"]
 
 func claim_daily_reward() -> bool:
 	if last_reward_day >= day:
@@ -167,6 +196,7 @@ func purchase_item(item_id: String) -> bool:
 		return false
 	coins -= int(prices[item_id])
 	inventory[item_id] = int(inventory.get(item_id, 0)) + 1
+	inventory_changed.emit(item_id, int(inventory[item_id]))
 	save_world()
 	return true
 
@@ -181,7 +211,7 @@ func set_nails(hands: int, feet: int) -> void:
 
 func save_world() -> void:
 	var cfg := ConfigFile.new()
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","last_reward_day","music_enabled","music_volume","sfx_enabled","inventory","completed_events"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","last_reward_day","last_social_day","social_actions_today","event_rewards_today","music_enabled","music_volume","sfx_enabled","inventory","completed_events"]:
 		cfg.set_value("world", key, get(key))
 	cfg.save(SAVE_PATH)
 
