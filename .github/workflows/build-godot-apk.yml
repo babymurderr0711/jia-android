@@ -41,9 +41,15 @@ jobs:
           set +o pipefail
           yes | sdkmanager --licenses >/dev/null || true
           set -o pipefail
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;33.0.2" "build-tools;35.0.0" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
+          # Install the exact Build Tools revision Godot 4.4.1 requests as a separate SDK transaction.
+          sdkmanager --install --verbose "build-tools;33.0.2"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/platforms/android-35"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/33.0.2"
+          test -s "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/33.0.2/source.properties"
+          grep -q "^Pkg.Revision=33.0.2" "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/33.0.2/source.properties"
+          echo "Installed Build Tools 33.0.2 metadata:"
+          cat "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/33.0.2/source.properties"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/35.0.0"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/ndk/23.2.8568313"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/cmake/3.10.2.4988404"
