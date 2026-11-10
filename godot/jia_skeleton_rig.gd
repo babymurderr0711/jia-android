@@ -373,11 +373,11 @@ func _animate_bones(delta: float) -> void:
 	var breath := sin(clock * 1.55)
 	var idle_sway := sin(clock * 0.72)
 	var pose_targets := [
-		{"Root":0.0,"Torso":-0.04,"Head":0.0,"Shoulder_L":-0.18,"Shoulder_R":0.18,"Elbow_L":-0.12,"Elbow_R":0.12,"Hip_L":-0.58,"Hip_R":0.58,"Knee_L":1.05,"Knee_R":-1.05},
-		{"Root":0.0,"Torso":0.0,"Head":0.0,"Shoulder_L":-0.28,"Shoulder_R":0.28,"Elbow_L":0.08,"Elbow_R":-0.08,"Hip_L":0.0,"Hip_R":0.0,"Knee_L":0.0,"Knee_R":0.0},
-		{"Root":0.0,"Torso":-0.08,"Head":0.03,"Shoulder_L":-0.48,"Shoulder_R":0.48,"Elbow_L":0.25,"Elbow_R":-0.25,"Hip_L":-1.05,"Hip_R":1.05,"Knee_L":1.45,"Knee_R":-1.45},
-		{"Root":1.35,"Torso":0.08,"Head":-0.04,"Shoulder_L":0.5,"Shoulder_R":-0.5,"Elbow_L":0.35,"Elbow_R":-0.35,"Hip_L":0.25,"Hip_R":-0.25,"Knee_L":0.45,"Knee_R":-0.45},
-		{"Root":0.0,"Torso":0.0,"Head":PI,"Shoulder_L":0.15,"Shoulder_R":-0.15,"Elbow_L":0.0,"Elbow_R":0.0,"Hip_L":-0.08,"Hip_R":0.08,"Knee_L":0.0,"Knee_R":0.0}
+		{"Root":0.0,"Torso":-0.04,"Head":0.0,"Shoulder_L":-0.18,"Shoulder_R":0.18,"Elbow_L":-0.12,"Elbow_R":0.12,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":-0.58,"Hip_R":0.58,"Knee_L":1.05,"Knee_R":-1.05},
+		{"Root":0.0,"Torso":0.0,"Head":0.0,"Shoulder_L":-0.28,"Shoulder_R":0.28,"Elbow_L":0.08,"Elbow_R":-0.08,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":0.0,"Hip_R":0.0,"Knee_L":0.0,"Knee_R":0.0},
+		{"Root":0.0,"Torso":-0.08,"Head":0.03,"Shoulder_L":-0.48,"Shoulder_R":0.48,"Elbow_L":0.25,"Elbow_R":-0.25,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":-1.05,"Hip_R":1.05,"Knee_L":1.45,"Knee_R":-1.45},
+		{"Root":1.35,"Torso":0.08,"Head":-0.04,"Shoulder_L":0.5,"Shoulder_R":-0.5,"Elbow_L":0.35,"Elbow_R":-0.35,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":0.25,"Hip_R":-0.25,"Knee_L":0.45,"Knee_R":-0.45},
+		{"Root":0.0,"Torso":0.0,"Head":PI,"Shoulder_L":0.15,"Shoulder_R":-0.15,"Elbow_L":0.0,"Elbow_R":0.0,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":-0.08,"Hip_R":0.08,"Knee_L":0.0,"Knee_R":0.0}
 	]
 	var targets: Dictionary = pose_targets[pose]
 	for key in targets:
