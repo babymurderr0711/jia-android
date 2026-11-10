@@ -676,11 +676,11 @@ func _interact_with_jia() -> void:
 		action_text = "Я немного устала… Давай отдохнём? ♡"
 		expression = "sleepy"
 		return
-	JiaWorld.energy = maxf(0.0, JiaWorld.energy - 1.0)
-	JiaWorld.mood = minf(100.0, JiaWorld.mood + 1.5)
-	JiaWorld.affection = minf(100.0, JiaWorld.affection + 1.0)
 	_sync_world_state()
-	_react(1.5)
+	reaction = 2.2
+	action_timer = 5.0
+	ambient_music.play_chime()
+	queue_redraw()
 
 func _next_pose() -> void:
 	pose_index = (pose_index + 1) % pose_names.size()
@@ -881,13 +881,18 @@ func _talk() -> void:
 	var lines: Array[String] = JiaWorld.relationship_dialogue()
 	action_text = lines[dialogue_index % lines.size()]
 	dialogue_index += 1
-	JiaWorld.register_social_action()
-	JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.7)
-	JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.5)
+	if JiaWorld.register_social_action():
+		JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.7)
+		JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.5)
+	else:
+		action_text = "Мы уже много поговорили сегодня. Мне и так уютно рядом ♡"
 	expression = "shy" if dialogue_index % 3 == 0 else "happy"
 	expression_timer = 2.8
 	_sync_world_state()
-	_react(0.0)
+	reaction = 2.2
+	action_timer = 5.0
+	ambient_music.play_chime()
+	queue_redraw()
 
 func _rest() -> void:
 	character_rig.play_gesture("rest", 2.5)
