@@ -66,6 +66,17 @@ jobs:
           test -x "$ANDROID_SDK_DIR/build-tools/33.0.2/apksigner"
           test -x "$ANDROID_SDK_DIR/build-tools/35.0.0/zipalign"
           test -x "$ANDROID_SDK_DIR/build-tools/35.0.0/apksigner"
+          # Godot 4.4 selects apksigner by the first numeric component of the
+          # build-tools directory name (Target SDK 35). Provide a version-35
+          # directory because this SDK image exposes only the 35.0.0 folder.
+          if [ ! -d "$ANDROID_SDK_DIR/build-tools/35" ]; then
+            cp -a "$ANDROID_SDK_DIR/build-tools/35.0.0" "$ANDROID_SDK_DIR/build-tools/35"
+          fi
+          test -x "$ANDROID_SDK_DIR/build-tools/35/apksigner"
+          test -x "$ANDROID_SDK_DIR/build-tools/35/zipalign"
+          echo "Build Tools directories visible to Godot:"
+          find "$ANDROID_SDK_DIR/build-tools" -mindepth 1 -maxdepth 1 -type d -printf '%f\\n' | sort
+          "$ANDROID_SDK_DIR/build-tools/35/apksigner" --version
           test -x "$JAVA_HOME_DIR/bin/javac"
           echo "Resolved Android SDK: $ANDROID_SDK_DIR"
           echo "Resolved Java home: $JAVA_HOME_DIR"
