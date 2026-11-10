@@ -238,10 +238,12 @@ func _add_face(head: Bone2D) -> void:
 	_update_face()
 
 func _update_face() -> void:
+	var blink_wave := absf(sin(clock * 0.73 + 0.35))
+	var blink := 1.0 - smoothstep(0.965, 0.995, blink_wave)
 	for i in range(eye_surfaces.size()):
 		var x := -17.0 if i == 0 else 17.0
-		var radius := Vector2(5,2) if expression == "sleepy" else Vector2(5,8)
-		eye_surfaces[i].polygon = _ellipse(Vector2(x,-4),radius)
+		var eye_height := 2.0 if expression == "sleepy" else lerpf(8.0, 0.7, blink)
+		eye_surfaces[i].polygon = _ellipse(Vector2(x,-4),Vector2(5,eye_height))
 	for cheek in cheek_surfaces:
 		cheek.color = Color("#e77c83",0.48 if expression == "shy" else 0.0)
 	if is_instance_valid(mouth_line):
