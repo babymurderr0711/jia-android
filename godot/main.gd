@@ -881,6 +881,7 @@ func _talk() -> void:
 	var lines: Array[String] = JiaWorld.relationship_dialogue()
 	action_text = lines[dialogue_index % lines.size()]
 	dialogue_index += 1
+	JiaWorld.register_social_action()
 	JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.7)
 	JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.5)
 	expression = "shy" if dialogue_index % 3 == 0 else "happy"
