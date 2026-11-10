@@ -9,7 +9,7 @@ The source is a single flattened pose. It is not possible to obtain clean indepe
 ## Current implementation
 
 - A live `Skeleton2D` hierarchy is instantiated in `Main.tscn`: root, pelvis, torso, neck, head, hair, shoulders, elbows, wrists, hips, knees and ankles.
-- CI extracts the front panel from the approved four-view turnaround and generates 14 registered transparent cutouts: head, torso, upper arms, forearms, hands, thighs, shins and feet.
+- CI extracts the front panel from the approved four-view turnaround and generates 14 registered transparent cutouts: head, torso, upper arms, forearms, hands, thighs, shins and feet. Limb masks receive a conservative 13 px maximum-filter overlap at joints (7 px on other pieces) to reduce hairline gaps during rotation; source alpha remains authoritative.
 - All 14 cutouts are attached to their corresponding bones with pivots aligned to the front-view artwork. Hands now have separate wrist sprites, so wave gestures can rotate the hand independently of the forearm.
 - Cutout alpha is intersected with the source alpha; transparent background pixels are not made opaque. Draw order is layered back-to-front to reduce joint overlap artifacts.
 - Five pose states are supported. Bone rotations blend toward pose targets while breathing and small idle movements continue. A wrist gesture target drives the separate hand sprites.
@@ -33,9 +33,9 @@ The source is a single flattened pose. It is not possible to obtain clean indepe
 - Extended the headless rig smoke test to check the new motion and finite/limited rotations.
 
 ### 1. Articulated cutout refinement
-- Review generated layers in the running Godot scene at native scale.
+- Review generated layers in the running Godot scene at native scale, including both neutral and bent-joint poses.
 - Refine mask contours and overlap at shoulders, elbows, wrists, hips, knees and ankles.
-- Reconstruct missing anatomy under joints so moderate bends do not reveal gaps.
+- Reconstruct missing anatomy under joints so moderate bends do not reveal gaps. Mask overlap is a seam-reduction measure only; it does not reconstruct hidden anatomy.
 - Keep manicure and pedicure overlays attached to the hand and foot bones.
 
 ### 2. Production art rig
