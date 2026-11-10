@@ -744,7 +744,7 @@ func _finish_massage() -> void:
 	JiaWorld.save_world()
 
 func _initiative_action() -> void:
-	var choices := ["talk", "wave", "sleepy", "shy"]
+	var choices := ["talk", "wave", "sleepy", "shy", "nod", "look", "laugh"]
 	match choices[randi() % choices.size()]:
 		"talk":
 			action_text = ["Эй, побудь со мной немного? ♡","Мне хочется рассказать тебе кое-что","Как ты там? Я слушаю"][randi() % 3]
@@ -762,6 +762,18 @@ func _initiative_action() -> void:
 			action_text = "Поймала твой взгляд и улыбнулась ♡"
 			expression = "shy"
 			character_rig.play_gesture("shy", 1.8)
+		"nod":
+			action_text = "Угу, я тебя внимательно слушаю ♡"
+			expression = "happy"
+			character_rig.play_gesture("nod", 1.2)
+		"look":
+			action_text = "На секунду задумалась и отвела взгляд…"
+			expression = "soft"
+			character_rig.play_gesture("look", 1.8)
+		"laugh":
+			action_text = "Хи-хи, ну ты меня рассмешил! ♡"
+			expression = "happy"
+			character_rig.play_gesture("laugh", 1.6)
 	expression_timer = 3.5
 	action_timer = 6.0
 	queue_redraw()
