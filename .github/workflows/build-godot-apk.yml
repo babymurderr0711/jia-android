@@ -105,8 +105,13 @@ jobs:
           test -s "$TEMPLATE_DIR/android_source.zip"
           mkdir -p godot/android/build
           unzip -q -o "$TEMPLATE_DIR/android_source.zip" -d godot/android/build
-          touch godot/android/.gdignore
+          # Do not hide res://android from Godot: the exporter checks the Gradle template through res://.
+          rm -f godot/android/.gdignore
           test -s godot/android/build/build.gradle
+          echo "Installed Gradle template:"
+          ls -la godot/android
+          ls -la godot/android/build | head -40
+          test -s godot/android/build/.build_version || true
           test -s godot/android/build/settings.gradle
           test -d godot/android/build/gradle
 
