@@ -81,7 +81,10 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          timeout 300s godot --headless --path godot --verbose --install-android-build-template
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          test -s "$TEMPLATE_DIR/android_source.zip"
+          mkdir -p godot/android/build
+          unzip -q -o "$TEMPLATE_DIR/android_source.zip" -d godot/android/build
           test -s godot/android/build/build.gradle
           test -s godot/android/build/settings.gradle
           test -d godot/android/build/gradle
