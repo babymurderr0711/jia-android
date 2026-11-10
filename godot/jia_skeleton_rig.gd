@@ -18,6 +18,8 @@ var gesture := "none"
 var gesture_time := 0.0
 var gesture_strength := 0.0
 var secondary_motion := 0.0
+var head_look := 0.0
+var hair_sway := 0.0
 var expression := "soft"
 var manicure := 0
 var pedicure := 0
@@ -42,6 +44,8 @@ func _process(delta: float) -> void:
 		gesture_time = maxf(0.0, gesture_time - delta)
 	gesture_strength = move_toward(gesture_strength, 1.0 if gesture_time > 0.0 else 0.0, delta * 2.8)
 	secondary_motion = sin(clock * 1.7) * 0.025 + sin(clock * 0.83) * 0.012
+	head_look = sin(clock * 0.37) * 0.035
+	hair_sway = sin(clock * 1.9) * 0.045 + sin(clock * 0.8) * 0.018
 	_animate_bones(delta)
 	queue_redraw()
 
@@ -68,6 +72,15 @@ func _gesture_offset(bone_name: String) -> float:
 			if bone_name == "Shoulder_R": return -0.24 * amount
 		"rest":
 			if bone_name == "Head": return 0.08 * amount
+		"nod":
+			if bone_name == "Head": return sin(clock * 7.0) * 0.12 * amount
+		"look":
+			if bone_name == "Head": return -0.22 * amount
+			if bone_name == "Torso": return -0.035 * amount
+		"laugh":
+			if bone_name == "Head": return sin(clock * 9.0) * 0.07 * amount
+			if bone_name == "Shoulder_L": return -0.08 * amount
+			if bone_name == "Shoulder_R": return 0.08 * amount
 	return 0.0
 
 func set_appearance(outfit: Color, hands: int, feet: int, face: String, outfit_style: int = 0) -> void:
@@ -378,7 +391,7 @@ func _animate_bones(delta: float) -> void:
 		{"Root":0.0,"Torso":0.0,"Head":0.0,"Shoulder_L":-0.28,"Shoulder_R":0.28,"Elbow_L":0.08,"Elbow_R":-0.08,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":0.0,"Hip_R":0.0,"Knee_L":0.0,"Knee_R":0.0},
 		{"Root":0.0,"Torso":-0.08,"Head":0.03,"Shoulder_L":-0.48,"Shoulder_R":0.48,"Elbow_L":0.25,"Elbow_R":-0.25,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":-1.05,"Hip_R":1.05,"Knee_L":1.45,"Knee_R":-1.45},
 		{"Root":1.35,"Torso":0.08,"Head":-0.04,"Shoulder_L":0.5,"Shoulder_R":-0.5,"Elbow_L":0.35,"Elbow_R":-0.35,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":0.25,"Hip_R":-0.25,"Knee_L":0.45,"Knee_R":-0.45},
-		{"Root":0.0,"Torso":0.0,"Head":PI,"Shoulder_L":0.15,"Shoulder_R":-0.15,"Elbow_L":0.0,"Elbow_R":0.0,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":-0.08,"Hip_R":0.08,"Knee_L":0.0,"Knee_R":0.0}
+		{"Root":0.0,"Torso":0.10,"Head":0.18,"Shoulder_L":0.10,"Shoulder_R":-0.10,"Elbow_L":0.12,"Elbow_R":-0.12,"Wrist_L":0.0,"Wrist_R":0.0,"Hip_L":-0.08,"Hip_R":0.08,"Knee_L":0.0,"Knee_R":0.0}
 	]
 	var targets: Dictionary = pose_targets[pose]
 	for key in targets:
@@ -386,12 +399,21 @@ func _animate_bones(delta: float) -> void:
 		if key == "Torso":
 			target += breath * 0.018 + secondary_motion
 		elif key == "Head":
-			target += idle_sway * 0.025
+			target += idle_sway * 0.025 + head_look
 		elif key == "Shoulder_L":
 			target += sin(clock * 1.1) * 0.025
 		elif key == "Shoulder_R":
 			target -= sin(clock * 1.1 + 0.4) * 0.025
+		elif key == "Elbow_L":
+			target += sin(clock * 0.9 + 0.6) * 0.012
+		elif key == "Elbow_R":
+			target -= sin(clock * 0.9) * 0.012
 		target += _gesture_offset(str(key))
+		var limits := {"Head":Vector2(-0.42,0.42),"Torso":Vector2(-0.28,0.28),"Shoulder_L":Vector2(-1.0,1.0),"Shoulder_R":Vector2(-1.0,1.0),"Elbow_L":Vector2(-1.25,1.25),"Elbow_R":Vector2(-1.25,1.25),"Wrist_L":Vector2(-0.65,0.65),"Wrist_R":Vector2(-0.65,0.65),"Hip_L":Vector2(-1.25,1.25),"Hip_R":Vector2(-1.25,1.25),"Knee_L":Vector2(-1.5,1.5),"Knee_R":Vector2(-1.5,1.5)}
+		if limits.has(key):
+			target = clampf(target, limits[key].x, limits[key].y)
 		var bone: Bone2D = bones[key]
 		var blend := 1.0 - exp(-pose_blend_speed * delta)
 		bone.rotation = lerp_angle(bone.rotation, target, blend)
+	var hair_bone: Bone2D = bones["Hair"]
+	hair_bone.rotation = lerpf(hair_bone.rotation, hair_sway, 1.0 - exp(-7.0 * delta))
