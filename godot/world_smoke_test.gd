@@ -39,6 +39,13 @@ func _run_tests() -> void:
 	root.add_child(rig)
 	await process_frame
 	_check(rig.bones.size() >= 18, "skeleton contains full joint hierarchy")
+	var art_sprites := rig.skeleton.find_children("JiaArt_*", "Sprite2D", true, false)
+	_check(art_sprites.size() == 10, "all ten painted body cutouts attach to the rig")
+	for sprite_node in art_sprites:
+		var art_sprite := sprite_node as Sprite2D
+		_check(art_sprite.texture != null, "painted cutout texture is loaded: " + art_sprite.name)
+	_check((rig.bones["Elbow_L"] as Bone2D).get_node_or_null("JiaArt_forearm_l") != null, "left forearm follows elbow bone")
+	_check((rig.bones["Ankle_R"] as Bone2D).get_node_or_null("JiaArt_foot_r") != null, "right foot follows ankle bone")
 	rig.set_pose(2)
 	rig.set_appearance(Color("#5b1c38"), 2, 3, "shy", 1)
 	await process_frame
