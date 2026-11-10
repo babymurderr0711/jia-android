@@ -1,0 +1,30 @@
+name: Import approved Jia character artwork
+on:
+  push:
+    branches: [godot-main]
+    paths:
+      - "godot/prepare_character_art.py"
+      - ".github/workflows/import-jia-art.yml"
+permissions:
+  contents: write
+jobs:
+  import-art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: godot-main
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Download and prepare approved art
+        run: python godot/prepare_character_art.py
+      - name: Commit generated texture
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add godot/assets/jia_front.png godot/assets/jia_turnaround_source.png
+          git commit -m "Import approved Jia character texture"
+          git push origin godot-main
