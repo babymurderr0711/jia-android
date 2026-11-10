@@ -393,16 +393,17 @@ func _draw_ui() -> void:
 	# Header
 	_panel(Rect2(18, 18, 405, 105))
 	draw_string(ThemeDB.fallback_font, Vector2(42, 63), "Jia ♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, PALE)
-	draw_string(ThemeDB.fallback_font, Vector2(42, 101), "Lv. " + str(1 + int(closeness / 20.0)) + "   ♥ " + str(int(closeness)) + "% · " + JiaWorld.relationship_stage(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(42, 101), "Ур. " + str(1 + int(closeness / 20.0)) + "   ♥ " + str(int(closeness)) + "% · " + JiaWorld.relationship_stage(), HORIZONTAL_ALIGNMENT_LEFT, 350, 16, PALE)
 	_panel(Rect2(475, 18, 225, 105))
 	draw_string(ThemeDB.fallback_font, Vector2(495, 63), _clock_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(495, 96), _day_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(656, 58), "⚙", HORIZONTAL_ALIGNMENT_LEFT, -1, 30, PALE)
 	# dialogue
 	_panel(Rect2(22, 150, 340, 112), PALE)
-	draw_string(ThemeDB.fallback_font, Vector2(42, 193), action_text.left(27), HORIZONTAL_ALIGNMENT_LEFT, 300, 23, INK)
+	draw_string(ThemeDB.fallback_font, Vector2(42, 190), action_text.left(34), HORIZONTAL_ALIGNMENT_LEFT, 300, 20, INK)
+	draw_string(ThemeDB.fallback_font, Vector2(42, 226), "JIA  ·  " + ("СОБЫТИЕ" if not JiaWorld.active_event.is_empty() else "ДОМА"), HORIZONTAL_ALIGNMENT_LEFT, 290, 13, Color("#9c557c"))
 	# right actions
-	var labels := ["Позировать", "Массаж", "Чай", "Подарок", "Отдых"]
+	var labels := ["Поза", "Массаж", "Чай", "Подарок", "Отдых"]
 	for i in range(5):
 		_button(Rect2(500, 380 + i * 88, 200, 68), labels[i])
 	# stats
@@ -413,7 +414,7 @@ func _draw_ui() -> void:
 	_draw_stat("🍓 Сытость", JiaWorld.hunger, 1150)
 	_draw_stat("✧ Гигиена", JiaWorld.hygiene, 1194)
 	# bottom nav
-	var nav := ["Образ", "Ногти", "Педикюр", "Ритм ♡", "Магазин"]
+	var nav := ["Одежда", "Маникюр", "Педикюр", "Ритм ♡", "Магазин"]
 	for i in range(5):
 		_button(Rect2(18 + i * 140, 890, 130, 76), nav[i])
 	if massage_selector_open:
@@ -476,20 +477,36 @@ func _day_label() -> String:
 	return "День %d · Jia's Place" % JiaWorld.day
 
 func _panel(r: Rect2, fill: Color = Color("#281827")) -> void:
-	draw_rect(r, INK)
-	draw_rect(r.grow(-5), Color("#9c557c"))
-	draw_rect(r.grow(-9), fill)
+	# Layered frame gives every card a consistent dark, plum-and-rose visual hierarchy.
+	draw_rect(r.grow(2.0), Color("#120d17"))
+	draw_rect(r, Color("#59304d"))
+	draw_rect(r.grow(-3.0), Color("#b56b91"))
+	draw_rect(r.grow(-7.0), fill)
+	draw_rect(Rect2(r.position.x + 12.0, r.position.y + 9.0, maxf(0.0, r.size.x - 24.0), 2.0), Color("#ffffff", 0.10))
 
 func _button(r: Rect2, label: String) -> void:
-	draw_rect(r, INK)
-	draw_rect(r.grow(-4), Color("#a34c7d"))
-	draw_rect(r.grow(-8), Color("#f18abd"))
-	draw_string(ThemeDB.fallback_font, Vector2(r.position.x + 12, r.position.y + 44), label, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 24, 21, INK)
+	draw_rect(r.grow(2.0), Color("#130d17"))
+	draw_rect(r, Color("#6b3657"))
+	draw_rect(r.grow(-3.0), Color("#d77ca8"))
+	draw_rect(r.grow(-7.0), Color("#f6b2d0"))
+	# Scale long Russian labels down so they remain legible on narrow phone controls.
+	var font_size := 20
+	if label.length() > 20:
+		font_size = 14
+	elif label.length() > 14:
+		font_size = 16
+	elif label.length() > 10:
+		font_size = 18
+	var baseline := r.position.y + (r.size.y + float(font_size)) * 0.5 - 2.0
+	draw_string(ThemeDB.fallback_font, Vector2(r.position.x + 8.0, baseline), label, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 16.0, font_size, Color("#351b30"))
 
 func _draw_stat(label: String, value: float, y: float) -> void:
-	draw_string(ThemeDB.fallback_font, Vector2(35, y), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, PALE)
-	draw_rect(Rect2(35, y + 7, 235, 9), INK)
-	draw_rect(Rect2(35, y + 7, 235.0 * clampf(value, 0.0, 100.0) / 100.0, 9), PINK)
+	var amount := clampf(value, 0.0, 100.0)
+	draw_string(ThemeDB.fallback_font, Vector2(35, y), label, HORIZONTAL_ALIGNMENT_LEFT, 190, 16, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(267, y), str(int(amount)) + "%", HORIZONTAL_ALIGNMENT_RIGHT, 0, 14, Color("#f6c2dc"))
+	draw_rect(Rect2(35, y + 8, 235, 10), Color("#160f19"))
+	draw_rect(Rect2(35, y + 8, 235.0 * amount / 100.0, 10), Color("#e887b5"))
+	draw_rect(Rect2(35, y + 8, 235, 1), Color("#ffffff", 0.12))
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch and event.pressed:
