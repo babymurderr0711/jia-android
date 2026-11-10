@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          godot --headless --path godot --install-android-build-template
+          timeout 300s godot --headless --path godot --verbose --install-android-build-template
           test -s godot/android/build/build.gradle
           test -s godot/android/build/settings.gradle
           test -d godot/android/build/gradle
