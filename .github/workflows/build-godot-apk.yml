@@ -37,9 +37,11 @@ jobs:
           set +o pipefail
           yes | sdkmanager --licenses >/dev/null || true
           set -o pipefail
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/platforms/android-33"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/33.0.2"
+          test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/ndk/23.2.8568313"
+          test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/cmake/3.10.2.4988404"
 
           JAVA_BIN="$(readlink -f "$(command -v java)")"
           JAVA_HOME_DIR="$(dirname "$(dirname "$JAVA_BIN")")"
