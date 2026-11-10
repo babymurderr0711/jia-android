@@ -162,21 +162,56 @@ func _build_skeleton() -> void:
 		else:
 			current.set_length(1.0)
 		current.rest = current.transform
-	# The approved turnaround's frontal texture is attached to the root bone.
-	# Joint bones remain live; the next skinning pass replaces this root skin with
-	# overlapping limb/torso/head regions bound to their corresponding bones.
-	var art_texture := load("res://assets/jia_front.png") as Texture2D
-	if art_texture != null:
-		approved_art_sprite = Sprite2D.new()
-		approved_art_sprite.name = "ApprovedJiaArtwork_RootSkin"
-		approved_art_sprite.texture = art_texture
-		approved_art_sprite.centered = false
-		approved_art_sprite.position = Vector2(-79.8, -160.0)
-		approved_art_sprite.scale = Vector2(0.42, 0.42)
-		approved_art_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		approved_art_sprite.z_index = 20
-		root.add_child(approved_art_sprite)
+
 	add_child(skeleton)
+	_install_art_cutouts()
+
+
+func _install_art_cutouts() -> void:
+	# Keep the live Bone2D hierarchy, replacing only the temporary vector artwork.
+	for node in skeleton.find_children("*", "Polygon2D", true, false):
+		(node as CanvasItem).visible = false
+	for node in skeleton.find_children("*", "Line2D", true, false):
+		(node as CanvasItem).visible = false
+	var origins: Dictionary = {
+		"Head": Vector2(0,-115),
+		"Torso": Vector2(0,20),
+		"Shoulder_L": Vector2(-48,-45),
+		"Shoulder_R": Vector2(48,-45),
+		"Hip_L": Vector2(-35,145),
+		"Hip_R": Vector2(35,145),
+		"Knee_L": Vector2(-63,260),
+		"Knee_R": Vector2(63,260)
+	}
+	var pieces: Array[Dictionary] = [
+		{"name":"head","bone":"Head","pivot":Vector2(180,220)},
+		{"name":"torso","bone":"Torso","pivot":Vector2(180,260)},
+		{"name":"arm_l","bone":"Shoulder_L","pivot":Vector2(80,250)},
+		{"name":"arm_r","bone":"Shoulder_R","pivot":Vector2(290,250)},
+		{"name":"thigh_l","bone":"Hip_L","pivot":Vector2(125,520)},
+		{"name":"thigh_r","bone":"Hip_R","pivot":Vector2(245,520)},
+		{"name":"shin_l","bone":"Knee_L","pivot":Vector2(125,820)},
+		{"name":"shin_r","bone":"Knee_R","pivot":Vector2(245,820)}
+	]
+	for piece in pieces:
+		var texture := load("res://assets/jia_%s.png" % piece.name) as Texture2D
+		if texture == null:
+			push_warning("Missing Jia cutout: %s" % piece.name)
+			continue
+		var bone_name: String = piece.bone
+		var pivot: Vector2 = piece.pivot
+		var root_point := Vector2(-79.8,-160.0) + pivot * 0.42
+		var sprite := Sprite2D.new()
+		sprite.name = "JiaArt_%s" % piece.name
+		sprite.texture = texture
+		sprite.centered = false
+		sprite.offset = -pivot
+		sprite.position = (root_point - origins[bone_name]) / 0.42
+		sprite.scale = Vector2(0.42,0.42)
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sprite.z_index = 30
+		(bones[bone_name] as Bone2D).add_child(sprite)
+
 
 func _bone(bone_name: String, parent: Node, offset: Vector2) -> Bone2D:
 	var bone := Bone2D.new()
