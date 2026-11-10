@@ -878,12 +878,8 @@ func _start_rhythm_game() -> void:
 	action_text = "Нажимай на сердечко, когда оно появляется! 12 секунд ♡"
 
 func _talk() -> void:
-	if closeness >= 85.0:
-		action_text = ["Я чувствую, что могу тебе доверять ♡", "Останься ещё на минутку? Мне хорошо рядом", "Давай сегодня устроим наш маленький вечер"][dialogue_index % 3]
-	elif closeness >= 60.0:
-		action_text = ["Мне нравится, как мы сближаемся ♡", "Расскажи мне что-нибудь хорошее", "Может, выберем мне новый образ?"][dialogue_index % 3]
-	else:
-		action_text = DIALOGUE_LINES[dialogue_index % DIALOGUE_LINES.size()]
+	var lines: Array[String] = JiaWorld.relationship_dialogue()
+	action_text = lines[dialogue_index % lines.size()]
 	dialogue_index += 1
 	JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.7)
 	JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.5)
