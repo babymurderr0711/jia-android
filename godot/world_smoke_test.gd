@@ -21,6 +21,11 @@ func _run_tests() -> void:
 	world.touch_response("head")
 	_check(world.affection > old_affection, "touch grows affection")
 	_check(world.social_actions_today > 0, "social actions are tracked per day")
+	for _i in range(JiaWorldSimulation.DAILY_SOCIAL_CAP + 3):
+		world.register_social_action()
+	var capped_count := world.social_actions_today
+	_check(capped_count == JiaWorldSimulation.DAILY_SOCIAL_CAP, "daily social action cap is enforced")
+	_check(not world.register_social_action(), "social actions stop rewarding after the daily cap")
 	_check(world.relationship_dialogue().size() >= 3, "relationship stage supplies dialogue variants")
 	world.set_outfit("midnight_blue")
 	world.set_nails(2, 3)
@@ -41,6 +46,9 @@ func _run_tests() -> void:
 	_check(clone.outfit_id == "midnight_blue", "outfit survives save/load")
 	_check(clone.nail_style == 2 and clone.toe_style == 3, "nail styles survive save/load")
 	_check(clone.relationship_dialogue().size() >= 3, "relationship dialogue remains available after load")
+	_check(clone.social_actions_today == world.social_actions_today, "daily social counter survives save/load")
+	_check(clone.event_rewards_today == world.event_rewards_today, "daily event rewards survive save/load")
+	_check(clone.last_social_day == world.last_social_day, "social day marker survives save/load")
 	_check(clone.music_enabled == world.music_enabled, "music preference survives save/load")
 	var rig_scene: PackedScene = load("res://JiaSkeletonRig.tscn")
 	var rig: JiaSkeletonRig = rig_scene.instantiate() as JiaSkeletonRig
