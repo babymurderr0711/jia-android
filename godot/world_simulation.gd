@@ -28,6 +28,7 @@ var sfx_enabled := true
 var inventory: Dictionary = {"tea": 2, "snack": 3, "gift_flower": 1}
 var completed_events: Array[String] = []
 var active_event := ""
+var last_reward_day := 0
 var _minute_accumulator := 0.0
 var _autosave := 0.0
 
@@ -143,6 +144,32 @@ func touch_response(zone: String) -> Dictionary:
 	energy = clampf(energy - 0.5, 0.0, 100.0)
 	return result
 
+func relationship_stage() -> String:
+	if affection >= 90.0: return "Доверие"
+	if affection >= 70.0: return "Близость"
+	if affection >= 45.0: return "Дружба"
+	return "Знакомство"
+
+func claim_daily_reward() -> bool:
+	if last_reward_day >= day:
+		return false
+	last_reward_day = day
+	coins += 25
+	inventory["snack"] = int(inventory.get("snack", 0)) + 1
+	inventory["tea"] = int(inventory.get("tea", 0)) + 1
+	mood = clampf(mood + 4.0, 0.0, 100.0)
+	save_world()
+	return true
+
+func purchase_item(item_id: String) -> bool:
+	var prices := {"tea": 8, "snack": 12, "gift_flower": 30}
+	if not prices.has(item_id) or coins < int(prices[item_id]):
+		return false
+	coins -= int(prices[item_id])
+	inventory[item_id] = int(inventory.get(item_id, 0)) + 1
+	save_world()
+	return true
+
 func set_outfit(value: String) -> void:
 	outfit_id = value
 	save_world()
@@ -154,7 +181,7 @@ func set_nails(hands: int, feet: int) -> void:
 
 func save_world() -> void:
 	var cfg := ConfigFile.new()
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","music_enabled","music_volume","sfx_enabled","inventory","completed_events"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","last_reward_day","music_enabled","music_volume","sfx_enabled","inventory","completed_events"]:
 		cfg.set_value("world", key, get(key))
 	cfg.save(SAVE_PATH)
 
@@ -162,7 +189,7 @@ func load_world() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","music_enabled","music_volume","sfx_enabled","inventory"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","last_reward_day","music_enabled","music_volume","sfx_enabled","inventory"]:
 		if cfg.has_section_key("world", key):
 			set(key, cfg.get_value("world", key))
 	if cfg.has_section_key("world", "completed_events"):
