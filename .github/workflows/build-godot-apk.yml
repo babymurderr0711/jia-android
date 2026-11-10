@@ -61,17 +61,12 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
-      - name: Install Gradle Android build template
+      - name: Verify installed Gradle Android build template
         shell: bash
         run: |
           set -euxo pipefail
           SOURCE_TEMPLATE="$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip"
           test -s "$SOURCE_TEMPLATE"
-          mkdir -p godot/android/build
-          unzip -q -o "$SOURCE_TEMPLATE" -d godot/android/build
-          test -s godot/android/build/build.gradle
-          test -s godot/android/build/gradle/wrapper/gradle-wrapper.properties
-          test -s godot/android/build/settings.gradle
 
       - name: Validate project scripts and Android preset
         shell: bash
