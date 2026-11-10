@@ -62,6 +62,7 @@ var pending_touch_zone := "body"
 @onready var character_rig: JiaSkeletonRig = $CharacterRig
 @onready var ambient_music: JiaAmbientMusic = $AmbientMusic
 var settings_open := false
+var shop_open := false
 var dialogue_index := 0
 var touch_cooldown := 0.0
 const DIALOGUE_LINES := [
@@ -382,7 +383,7 @@ func _draw_ui() -> void:
 	# Header
 	_panel(Rect2(18, 18, 405, 105))
 	draw_string(ThemeDB.fallback_font, Vector2(42, 63), "Jia ♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, PALE)
-	draw_string(ThemeDB.fallback_font, Vector2(42, 101), "Lv. " + str(1 + int(closeness / 20.0)) + "   ♥ " + str(int(closeness)) + "%", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(42, 101), "Lv. " + str(1 + int(closeness / 20.0)) + "   ♥ " + str(int(closeness)) + "% · " + JiaWorld.relationship_stage(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
 	_panel(Rect2(475, 18, 225, 105))
 	draw_string(ThemeDB.fallback_font, Vector2(495, 63), _clock_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(495, 96), _day_label(), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, PALE)
@@ -402,9 +403,18 @@ func _draw_ui() -> void:
 	_draw_stat("🍓 Сытость", JiaWorld.hunger, 1150)
 	_draw_stat("✧ Гигиена", JiaWorld.hygiene, 1194)
 	# bottom nav
-	var nav := ["Образ", "Ногти", "Педикюр", "Ритм ♡"]
-	for i in range(4):
-		_button(Rect2(18 + i * 176, 890, 164, 76), nav[i])
+	var nav := ["Образ", "Ногти", "Педикюр", "Ритм ♡", "Магазин"]
+	for i in range(5):
+		_button(Rect2(18 + i * 140, 890, 130, 76), nav[i])
+	if shop_open:
+		_panel(Rect2(325, 285, 375, 475))
+		draw_string(ThemeDB.fallback_font, Vector2(350, 330), "Маленький магазин ♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 25, PALE)
+		draw_string(ThemeDB.fallback_font, Vector2(350, 365), "Чай %d · Перекус %d · Цветы %d" % [int(JiaWorld.inventory.get("tea", 0)), int(JiaWorld.inventory.get("snack", 0)), int(JiaWorld.inventory.get("gift_flower", 0))], HORIZONTAL_ALIGNMENT_LEFT, 340, 17, PALE)
+		_button(Rect2(350, 395, 325, 58), "Забрать ежедневный бонус · +25")
+		_button(Rect2(350, 465, 325, 58), "Купить чай · 8 монет")
+		_button(Rect2(350, 535, 325, 58), "Купить перекус · 12 монет")
+		_button(Rect2(350, 605, 325, 58), "Купить цветы · 30 монет")
+		_button(Rect2(350, 675, 325, 58), "Закрыть магазин")
 	if settings_open:
 		_panel(Rect2(350, 350, 350, 390))
 		draw_string(ThemeDB.fallback_font, Vector2(382, 398), "Настройки", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, PALE)
@@ -514,8 +524,29 @@ func _handle_tap(pos: Vector2) -> void:
 		elif Rect2(380, 685, 290, 42).has_point(pos):
 			settings_open = false
 		return
+	if shop_open:
+		if Rect2(350, 395, 325, 58).has_point(pos):
+			if JiaWorld.claim_daily_reward():
+				action_text = "Ежедневный бонус получен: +25 монет, чай и перекус! ♡"
+				_sync_world_state()
+			else:
+				action_text = "Сегодня бонус уже забран. Возвращайся завтра ♡"
+		elif Rect2(350, 465, 325, 58).has_point(pos):
+			_buy_item("tea")
+		elif Rect2(350, 535, 325, 58).has_point(pos):
+			_buy_item("snack")
+		elif Rect2(350, 605, 325, 58).has_point(pos):
+			_buy_item("gift_flower")
+		elif Rect2(350, 675, 325, 58).has_point(pos):
+			shop_open = false
+		queue_redraw()
+		return
 	if pos.y > 890 and pos.y < 980:
-		var idx := clampi(int(pos.x / 176.0), 0, 3)
+		var idx := clampi(int((pos.x - 18.0) / 140.0), 0, 4)
+		if idx == 4:
+			shop_open = true
+			queue_redraw()
+			return
 		match idx:
 			0: _change_outfit()
 			1: _change_manicure()
@@ -598,6 +629,7 @@ func _interact_with_jia() -> void:
 func _next_pose() -> void:
 	pose_index = (pose_index + 1) % pose_names.size()
 	character_rig.set_pose(pose_index)
+	character_rig.play_gesture("shy", 1.2)
 	pose_editor = false
 	arm_pose = 0.0
 	leg_pose = 0.0
@@ -622,6 +654,7 @@ func _change_pedicure() -> void:
 	_react(3.0)
 
 func _start_massage() -> void:
+	character_rig.play_gesture("reach", 1.6)
 	expression = "soft"
 	JiaWorld.touch_response("body")
 	expression_timer = 3.0
@@ -634,7 +667,15 @@ func _start_massage() -> void:
 	JiaWorld.affection = minf(100.0, JiaWorld.affection + 1.0)
 	_sync_world_state()
 
+func _buy_item(item_id: String) -> void:
+	if JiaWorld.purchase_item(item_id):
+		action_text = {"tea":"Чай пополнил запасы ♡","snack":"Перекус теперь в инвентаре!","gift_flower":"Цветы куплены — можно порадовать Джию ♡"}[item_id]
+		_sync_world_state()
+	else:
+		action_text = "Пока не хватает монет на эту покупку"
+
 func _gift() -> void:
+	character_rig.play_gesture("shy", 1.8)
 	if JiaWorld.consume("gift_flower"):
 		_sync_world_state()
 		action_text = "Ой, подарок для меня? Спасибо! ♡"
@@ -642,6 +683,7 @@ func _gift() -> void:
 		action_text = "Цветы закончились. Заглянем в магазин позже? ♡"
 
 func _greet() -> void:
+	character_rig.play_gesture("wave", 2.2)
 	action_text = "Я скучала! Расскажешь, как прошёл день? ♡"
 	expression = "shy"
 	expression_timer = 2.5
@@ -695,7 +737,12 @@ func _start_rhythm_game() -> void:
 	action_text = "Нажимай на сердечко, когда оно появляется! 12 секунд ♡"
 
 func _talk() -> void:
-	action_text = DIALOGUE_LINES[dialogue_index % DIALOGUE_LINES.size()]
+	if closeness >= 85.0:
+		action_text = ["Я чувствую, что могу тебе доверять ♡", "Останься ещё на минутку? Мне хорошо рядом", "Давай сегодня устроим наш маленький вечер"][dialogue_index % 3]
+	elif closeness >= 60.0:
+		action_text = ["Мне нравится, как мы сближаемся ♡", "Расскажи мне что-нибудь хорошее", "Может, выберем мне новый образ?"][dialogue_index % 3]
+	else:
+		action_text = DIALOGUE_LINES[dialogue_index % DIALOGUE_LINES.size()]
 	dialogue_index += 1
 	JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.7)
 	JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.5)
@@ -705,6 +752,7 @@ func _talk() -> void:
 	_react(0.0)
 
 func _rest() -> void:
+	character_rig.play_gesture("rest", 2.5)
 	JiaWorld.rest(120)
 	_sync_world_state()
 	expression = "sleepy"
