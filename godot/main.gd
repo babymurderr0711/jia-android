@@ -501,7 +501,7 @@ func _input(event: InputEvent) -> void:
 		if interaction_target != "none":
 			var point := _to_design(event.position)
 			massage_hand_position = point
-			var distance := event.relative.length()
+			var distance: float = event.relative.length()
 			massage_progress = clampf(massage_progress + distance / 950.0, 0.0, 1.0)
 			interaction_pulse = 0.5
 			JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.025)
@@ -751,7 +751,7 @@ func _initiative_action() -> void:
 
 func _draw_massage_scene() -> void:
 	_panel(Rect2(28, 285, 455, 475))
-	var title := {"feet":"Массаж стоп","shoulders":"Массаж плеч и спины","hands":"Массаж рук","legs":"Массаж ног"}.get(massage_kind, "Массаж")
+	var title: String = str({"feet":"Массаж стоп","shoulders":"Массаж плеч и спины","hands":"Массаж рук","legs":"Массаж ног"}.get(massage_kind, "Массаж"))
 	draw_string(ThemeDB.fallback_font, Vector2(52, 330), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, PALE)
 	draw_string(ThemeDB.fallback_font, Vector2(52, 366), "Веди пальцем по отмеченной области", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, PALE)
 	var region := Rect2(90, 405, 320, 245)
