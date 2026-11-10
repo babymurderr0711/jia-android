@@ -196,6 +196,8 @@ func _install_art_cutouts() -> void:
 		{"name":"forearm_l","bone":"Elbow_L","pivot":Vector2(50,420)},
 		{"name":"upper_arm_r","bone":"Shoulder_R","pivot":Vector2(290,250)},
 		{"name":"forearm_r","bone":"Elbow_R","pivot":Vector2(330,420)},
+		{"name":"hand_l","bone":"Wrist_L","pivot":Vector2(25,650)},
+		{"name":"hand_r","bone":"Wrist_R","pivot":Vector2(350,650)},
 		{"name":"thigh_l","bone":"Hip_L","pivot":Vector2(120,520)},
 		{"name":"thigh_r","bone":"Hip_R","pivot":Vector2(250,520)},
 		{"name":"shin_l","bone":"Knee_L","pivot":Vector2(140,820)},
@@ -229,6 +231,8 @@ func _install_art_cutouts() -> void:
 				sprite.z_index = 24
 			"forearm_l", "forearm_r":
 				sprite.z_index = 26
+			"hand_l", "hand_r":
+				sprite.z_index = 27
 			"head":
 				sprite.z_index = 28
 		(bones[bone_name] as Bone2D).add_child(sprite)
