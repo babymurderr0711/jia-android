@@ -566,7 +566,7 @@ func _handle_tap(pos: Vector2) -> void:
 	if shop_open:
 		if Rect2(350, 395, 325, 58).has_point(pos):
 			if JiaWorld.claim_daily_reward():
-				action_text = "Ежедневный бонус получен: +25 монет, чай и перекус! ♡"
+				action_text = "Ежедневный бонус получен: +50 монет, чай и перекус! ♡"
 				_sync_world_state()
 			else:
 				action_text = "Сегодня бонус уже забран. Возвращайся завтра ♡"
