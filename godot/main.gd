@@ -503,7 +503,7 @@ func _button(r: Rect2, label: String) -> void:
 func _draw_stat(label: String, value: float, y: float) -> void:
 	var amount := clampf(value, 0.0, 100.0)
 	draw_string(ThemeDB.fallback_font, Vector2(35, y), label, HORIZONTAL_ALIGNMENT_LEFT, 190, 16, PALE)
-	draw_string(ThemeDB.fallback_font, Vector2(267, y), str(int(amount)) + "%", HORIZONTAL_ALIGNMENT_RIGHT, 0, 14, Color("#f6c2dc"))
+	draw_string(ThemeDB.fallback_font, Vector2(35, y), str(int(amount)) + "%", HORIZONTAL_ALIGNMENT_RIGHT, 235, 14, Color("#f6c2dc"))
 	draw_rect(Rect2(35, y + 8, 235, 10), Color("#160f19"))
 	draw_rect(Rect2(35, y + 8, 235.0 * amount / 100.0, 10), Color("#e887b5"))
 	draw_rect(Rect2(35, y + 8, 235, 1), Color("#ffffff", 0.12))
