@@ -11,6 +11,7 @@ const SAVE_PATH := "user://jia_world.cfg"
 const DAY_MINUTES := 1440
 const MIN_NEED := 0.0
 const MAX_NEED := 100.0
+const DAILY_SOCIAL_CAP := 12
 
 var minutes := 8 * 60
 var day := 1
@@ -153,10 +154,14 @@ func touch_response(zone: String) -> Dictionary:
 	if affection >= 85.0 and zone == "head":
 		result.line = "Я так люблю эти нежные прикосновения… ♡"
 		result.expression = "shy"
-	affection = clampf(affection + float(result.affection), 0.0, 100.0)
-	mood = clampf(mood + float(result.mood), 0.0, 100.0)
-	energy = clampf(energy - 0.5, 0.0, 100.0)
-	register_social_action()
+	if register_social_action():
+		affection = clampf(affection + float(result.affection), 0.0, 100.0)
+		mood = clampf(mood + float(result.mood), 0.0, 100.0)
+		energy = clampf(energy - 0.5, 0.0, 100.0)
+	else:
+		result.line = "Мы уже столько сегодня общались… Давай просто побудем рядом ♡"
+		result.affection = 0.0
+		result.mood = 0.0
 	relationship_changed.emit(relationship_stage(), affection)
 	return result
 
@@ -166,11 +171,14 @@ func relationship_stage() -> String:
 	if affection >= 45.0: return "Дружба"
 	return "Знакомство"
 
-func register_social_action() -> void:
+func register_social_action() -> bool:
 	if last_social_day != day:
 		last_social_day = day
 		social_actions_today = 0
+	if social_actions_today >= DAILY_SOCIAL_CAP:
+		return false
 	social_actions_today += 1
+	return true
 
 func relationship_dialogue() -> Array[String]:
 	if affection >= 90.0:
