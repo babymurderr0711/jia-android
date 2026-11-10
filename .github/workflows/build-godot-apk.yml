@@ -75,11 +75,9 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          SOURCE_TEMPLATE="$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip"
-          test -s "$SOURCE_TEMPLATE"
-          mkdir -p godot/android/build
-          unzip -q -o "$SOURCE_TEMPLATE" -d godot/android/build
-          test -f godot/android/build/build.gradle
+          godot --headless --path godot --install-android-build-template
+          test -s godot/android/build/build.gradle
+          test -s godot/android/build/settings.gradle
           test -d godot/android/build/gradle
 
       - name: Validate project scripts and Android preset
@@ -98,9 +96,6 @@ jobs:
           export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
           export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
-          export ANDROID_HOME="${ANDROID_HOME:-/usr/lib/android-sdk}"
-          export ANDROID_SDK_ROOT="$ANDROID_HOME"
-          export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
           godot --headless --path godot --verbose --export-debug "Android" /tmp/Jia-Place-validation.apk
           test -s /tmp/Jia-Place-validation.apk
 
