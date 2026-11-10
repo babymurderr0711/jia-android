@@ -836,7 +836,6 @@ func _react(amount: float) -> void:
 	expression = "happy"
 	expression_timer = 2.0
 	JiaWorld.mood = minf(100.0, JiaWorld.mood + amount)
-	JiaWorld.affection = minf(100.0, JiaWorld.affection + 0.5)
 	_sync_world_state()
 	action_timer = 5.0
 	queue_redraw()
