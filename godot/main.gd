@@ -508,12 +508,11 @@ func _input(event: InputEvent) -> void:
 			if massage_progress >= 0.95:
 				_finish_massage()
 	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and interaction_target != "none":
-		massage_progress = clampf(massage_progress + event.relative.length() / 700.0, 0.0, 1.0)
+		massage_hand_position = _to_design(event.position)
+		massage_progress = clampf(massage_progress + event.relative.length() / 950.0, 0.0, 1.0)
 		interaction_pulse = 0.5
 		if massage_progress >= 0.95:
-			interaction_target = "none"
-			action_text = "Вот теперь совсем хорошо ♡"
-			_react(4.0)
+			_finish_massage()
 
 func _to_design(pos: Vector2) -> Vector2:
 	var s := get_viewport_rect().size
@@ -760,8 +759,8 @@ func _draw_massage_scene() -> void:
 	var center := region.get_center()
 	match massage_kind:
 		"feet":
-			draw_ellipse(center + Vector2(-55, 0), Vector2(35, 82), SKIN)
-			draw_ellipse(center + Vector2(55, 0), Vector2(35, 82), SKIN)
+			_draw_ellipse(center + Vector2(-55, 0), Vector2(35, 82), SKIN)
+			_draw_ellipse(center + Vector2(55, 0), Vector2(35, 82), SKIN)
 		"shoulders":
 			draw_circle(center + Vector2(0,-35), 34, SKIN)
 			draw_colored_polygon(PackedVector2Array([center+Vector2(-100,-30),center+Vector2(100,-30),center+Vector2(75,90),center+Vector2(-75,90)]), SKIN)
