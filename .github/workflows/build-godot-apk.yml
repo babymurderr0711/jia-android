@@ -101,8 +101,12 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          # Use Godot's installer so it writes the .build_version marker required by the exporter.
-          godot --headless --path godot --editor --install-android-build-template
+          # Godot 4.4.1 handles --install-android-build-template only in the export path.
+          # --editor --quit does not invoke the installer; pair the flag with --export-debug.
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          godot --headless --path godot --verbose --export-debug "Android" /tmp/Jia-Place-template-install.apk --install-android-build-template
           # Do not hide res://android from Godot: the exporter checks the Gradle template through res://.
           rm -f godot/android/.gdignore
           test -s godot/android/build/build.gradle
