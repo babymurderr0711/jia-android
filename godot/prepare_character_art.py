@@ -6,7 +6,7 @@ URL = "https://d2ol7oe51mr4n9.cloudfront.net/user_3KVjsYRNFpU20FJN3DkQrjG4WtZ/a0
 root = Path(__file__).resolve().parent
 assets = root / "assets"
 assets.mkdir(exist_ok=True)
-source = assets / "jia_turnaround_source.png"
+source = Path("/tmp/jia_turnaround_source.img")
 urlretrieve(URL, source)
 sheet = Image.open(source).convert("RGBA")
 front = sheet.crop((0, 0, 370, 1536))
