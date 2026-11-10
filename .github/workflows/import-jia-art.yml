@@ -7,6 +7,9 @@ on:
       - ".github/workflows/import-jia-art.yml"
 permissions:
   contents: write
+concurrency:
+  group: import-jia-art-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   import-art:
     runs-on: ubuntu-latest
@@ -27,5 +30,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add godot/assets/*.png
           git commit -m "Import approved Jia character cutout layers" || true
-          git pull --rebase origin godot-main
-          git push origin godot-main
+          for attempt in 1 2 3 4 5; do
+            git fetch origin godot-main
+            git rebase origin/godot-main
+            if git push origin HEAD:godot-main; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Could not push generated artwork after five retries"
+          exit 1
