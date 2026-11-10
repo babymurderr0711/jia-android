@@ -59,6 +59,13 @@ func _run_tests() -> void:
 	rig.play_gesture("wave", 2.0)
 	await create_timer(0.5).timeout
 	_check(absf((rig.bones["Wrist_R"] as Bone2D).rotation) > 0.01, "wave gesture articulates the wrist bone")
+	rig.play_gesture("nod", 1.0)
+	await create_timer(0.25).timeout
+	_check(absf((rig.bones["Head"] as Bone2D).rotation) < 0.5, "head nod stays within anatomical limits")
+	rig.set_pose(4)
+	await create_timer(0.35).timeout
+	_check(absf((rig.bones["Head"] as Bone2D).rotation) < 0.5, "rear-view placeholder does not invert the head")
+	_check(absf((rig.bones["Hair"] as Bone2D).rotation) < 0.15, "hair secondary motion remains subtle")
 	for bone_name in rig.bones:
 		var bone := rig.bones[bone_name] as Bone2D
 		_check(is_finite(bone.rotation), "bone rotation remains finite: " + str(bone_name))
