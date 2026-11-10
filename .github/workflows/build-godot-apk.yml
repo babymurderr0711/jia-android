@@ -144,8 +144,19 @@ jobs:
           export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
           export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
-          godot --verbose --headless --path godot --export-debug "Android" "$PWD/build/Jia-Place-debug.apk"
+          godot --verbose --headless --path godot --export-debug "Android" "$PWD/build/Jia-Place-unsigned.apk"
+          test -s build/Jia-Place-unsigned.apk
+          # Godot preset currently exports without signing; sign the final APK for Android Package Installer.
+          "$ANDROID_HOME/build-tools/35/apksigner" sign \
+            --ks "$HOME/.android/debug.keystore" \
+            --ks-key-alias androiddebugkey \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out build/Jia-Place-debug.apk \
+            build/Jia-Place-unsigned.apk
+          "$ANDROID_HOME/build-tools/35/apksigner" verify --verbose build/Jia-Place-debug.apk
           test -s build/Jia-Place-debug.apk
+          rm -f build/Jia-Place-unsigned.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
