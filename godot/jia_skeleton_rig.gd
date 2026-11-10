@@ -89,23 +89,23 @@ func _build_skeleton() -> void:
 	skeleton = Skeleton2D.new()
 	skeleton.name = "Skeleton2D"
 	var root := _bone("Root", skeleton, Vector2.ZERO)
-	var pelvis := _bone("Pelvis", root, Vector2(0, 125))
-	var torso := _bone("Torso", pelvis, Vector2(0, -105))
-	var neck := _bone("Neck", torso, Vector2(0, -100))
+	var pelvis := _bone("Pelvis", root, Vector2(0, 58))
+	var torso := _bone("Torso", pelvis, Vector2(0, -37.4))
+	var neck := _bone("Neck", torso, Vector2(0, -100.6))
 	var head := _bone("Head", neck, Vector2(0, -35))
 	_bone("Hair", head, Vector2.ZERO)
-	var l_shoulder := _bone("Shoulder_L", torso, Vector2(-48, -65))
-	var l_elbow := _bone("Elbow_L", l_shoulder, Vector2(-54, 70))
-	_bone("Wrist_L", l_elbow, Vector2(-35, 75))
-	var r_shoulder := _bone("Shoulder_R", torso, Vector2(48, -65))
-	var r_elbow := _bone("Elbow_R", r_shoulder, Vector2(54, 70))
-	_bone("Wrist_R", r_elbow, Vector2(35, 75))
-	var l_hip := _bone("Hip_L", pelvis, Vector2(-35, 20))
-	var l_knee := _bone("Knee_L", l_hip, Vector2(-28, 115))
-	_bone("Ankle_L", l_knee, Vector2(-12, 105))
-	var r_hip := _bone("Hip_R", pelvis, Vector2(35, 20))
-	var r_knee := _bone("Knee_R", r_hip, Vector2(28, 115))
-	_bone("Ankle_R", r_knee, Vector2(12, 105))
+	var l_shoulder := _bone("Shoulder_L", torso, Vector2(-46.2, -75.6))
+	var l_elbow := _bone("Elbow_L", l_shoulder, Vector2(-12.6, 71.4))
+	_bone("Wrist_L", l_elbow, Vector2(-10.5, 96.6))
+	var r_shoulder := _bone("Shoulder_R", torso, Vector2(46.2, -75.6))
+	var r_elbow := _bone("Elbow_R", r_shoulder, Vector2(16.8, 71.4))
+	_bone("Wrist_R", r_elbow, Vector2(8.4, 96.6))
+	var l_hip := _bone("Hip_L", pelvis, Vector2(-29.4, 0.4))
+	var l_knee := _bone("Knee_L", l_hip, Vector2(8.4, 126))
+	_bone("Ankle_L", l_knee, Vector2(0, 151.2))
+	var r_hip := _bone("Hip_R", pelvis, Vector2(25.2, 0.4))
+	var r_knee := _bone("Knee_R", r_hip, Vector2(-4.2, 126))
+	_bone("Ankle_R", r_knee, Vector2(2.1, 151.2))
 	_add_surface(torso, PackedVector2Array([Vector2(-52,-10),Vector2(52,-10),Vector2(68,112),Vector2(42,145),Vector2(-42,145),Vector2(-68,112)]), SKIN)
 	outfit_top_surface = Polygon2D.new()
 	outfit_top_surface.polygon = _top_shape()
@@ -196,12 +196,12 @@ func _install_art_cutouts() -> void:
 		{"name":"forearm_l","bone":"Elbow_L","pivot":Vector2(50,420)},
 		{"name":"upper_arm_r","bone":"Shoulder_R","pivot":Vector2(290,250)},
 		{"name":"forearm_r","bone":"Elbow_R","pivot":Vector2(330,420)},
-		{"name":"thigh_l","bone":"Hip_L","pivot":Vector2(125,520)},
-		{"name":"thigh_r","bone":"Hip_R","pivot":Vector2(245,520)},
-		{"name":"shin_l","bone":"Knee_L","pivot":Vector2(125,820)},
-		{"name":"shin_r","bone":"Knee_R","pivot":Vector2(245,820)},
-		{"name":"foot_l","bone":"Ankle_L","pivot":Vector2(125,1190)},
-		{"name":"foot_r","bone":"Ankle_R","pivot":Vector2(245,1190)}
+		{"name":"thigh_l","bone":"Hip_L","pivot":Vector2(120,520)},
+		{"name":"thigh_r","bone":"Hip_R","pivot":Vector2(250,520)},
+		{"name":"shin_l","bone":"Knee_L","pivot":Vector2(140,820)},
+		{"name":"shin_r","bone":"Knee_R","pivot":Vector2(240,820)},
+		{"name":"foot_l","bone":"Ankle_L","pivot":Vector2(140,1180)},
+		{"name":"foot_r","bone":"Ankle_R","pivot":Vector2(245,1180)}
 	]
 	for piece in pieces:
 		var texture := load("res://assets/jia_%s.png" % piece.name) as Texture2D
