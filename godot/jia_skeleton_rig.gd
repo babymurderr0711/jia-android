@@ -28,6 +28,7 @@ var nail_surfaces: Array[Polygon2D] = []
 var eye_surfaces: Array[Polygon2D] = []
 var cheek_surfaces: Array[Polygon2D] = []
 var mouth_line: Line2D
+var approved_art_sprite: Sprite2D
 const NAIL_COLORS := [Color("#17121d"), Color("#e83e72"), Color("#f4c2d9"), Color("#9d1d45")]
 
 func _ready() -> void:
@@ -161,6 +162,20 @@ func _build_skeleton() -> void:
 		else:
 			current.set_length(1.0)
 		current.rest = current.transform
+	# The approved turnaround's frontal texture is attached to the root bone.
+	# Joint bones remain live; the next skinning pass replaces this root skin with
+	# overlapping limb/torso/head regions bound to their corresponding bones.
+	var art_texture := load("res://assets/jia_front.png") as Texture2D
+	if art_texture != null:
+		approved_art_sprite = Sprite2D.new()
+		approved_art_sprite.name = "ApprovedJiaArtwork_RootSkin"
+		approved_art_sprite.texture = art_texture
+		approved_art_sprite.centered = false
+		approved_art_sprite.position = Vector2(-79.8, -160.0)
+		approved_art_sprite.scale = Vector2(0.42, 0.42)
+		approved_art_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		approved_art_sprite.z_index = 20
+		root.add_child(approved_art_sprite)
 	add_child(skeleton)
 
 func _bone(bone_name: String, parent: Node, offset: Vector2) -> Bone2D:
