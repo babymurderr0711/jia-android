@@ -13,6 +13,8 @@ The source is a single flattened pose. It is not possible to obtain clean indepe
 - All 14 cutouts are attached to their corresponding bones with pivots aligned to the front-view artwork. Hands now have separate wrist sprites, so wave gestures can rotate the hand independently of the forearm.
 - Cutout alpha is intersected with the source alpha; transparent background pixels are not made opaque. Draw order is layered back-to-front to reduce joint overlap artifacts.
 - Five pose states are supported. Bone rotations blend toward pose targets while breathing and small idle movements continue. A wrist gesture target drives the separate hand sprites.
+- Joint targets now pass through conservative local-angle limits for the head, torso, shoulders, elbows, wrists, hips and knees. Elbows receive low-amplitude idle counter-motion; the head has slow gaze drift and the hair child bone has subtle follow-through.
+- Gesture set includes wave, reach, shy, rest, nod, look and laugh. Autonomous character reactions can select the added nod/look/laugh gestures; smoke tests cover wrist articulation, head limits and the rear-pose placeholder.
 - CI smoke tests check the 14 texture attachments, shoulder/elbow/wrist/knee/ankle bone mapping, pose changes and finite bone rotations.
 - The artwork pipeline currently uses overlapping polygon masks on a flattened front view. It is a segmented cutout rig, not a skinned mesh; hidden anatomy is not yet fully reconstructed and extreme rotations can expose seams or missing pixels.
 - Face geometry responds to sleepy, shy and surprised states; outfit color/silhouette, manicure and pedicure remain connected to gameplay state.
@@ -23,6 +25,12 @@ The source is a single flattened pose. It is not possible to obtain clean indepe
 **Important limitation:** the approved front-view artwork is now imported as 14 articulated cutouts, but the character is not yet production-finished. This is not smooth mesh deformation, and the side/rear turnaround panels are reference-only. Joint seams, hidden anatomy, and transitions between views still need visual review and correction.
 
 ## Remaining production tracks
+
+### Completed in the current rig pass
+- Removed the upside-down head rotation from the fifth pose. Since no rear-view body cutout is available, this pose is explicitly a restrained over-shoulder placeholder, not a true back view.
+- Added conservative joint-angle clamps and subtle secondary motion for head, elbows and hair.
+- Added nod, look and laugh gestures and connected them to autonomous idle reactions.
+- Extended the headless rig smoke test to check the new motion and finite/limited rotations.
 
 ### 1. Articulated cutout refinement
 - Review generated layers in the running Godot scene at native scale.
@@ -36,7 +44,7 @@ The source is a single flattened pose. It is not possible to obtain clean indepe
 - Keep the turnaround side and rear views as references for future alternate-view sprites; do not rotate the front sprite to fake a side view.
 
 ### 3. Animation polish
-- Add authored AnimationPlayer clips for idle breathing, blink, gaze, hair sway, head turns, gestures and transitions.
+- Convert the procedural motion pass into authored AnimationPlayer clips for idle breathing, blink, gaze, hair sway, head turns, gestures and transitions; current motion is procedural and should not be described as authored clips.
 - Improve the current five pose presets with tested silhouettes and natural joint limits.
 - Tie facial and body animation to mood, closeness and energy.
 - Check every pose for self-intersections, stretched limbs and foot/hand orientation.
