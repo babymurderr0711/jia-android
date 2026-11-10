@@ -177,21 +177,31 @@ func _install_art_cutouts() -> void:
 		"Head": Vector2(0,-115),
 		"Torso": Vector2(0,20),
 		"Shoulder_L": Vector2(-48,-45),
+		"Elbow_L": Vector2(-102,25),
+		"Wrist_L": Vector2(-137,100),
 		"Shoulder_R": Vector2(48,-45),
+		"Elbow_R": Vector2(102,25),
+		"Wrist_R": Vector2(137,100),
 		"Hip_L": Vector2(-35,145),
 		"Hip_R": Vector2(35,145),
 		"Knee_L": Vector2(-63,260),
-		"Knee_R": Vector2(63,260)
+		"Knee_R": Vector2(63,260),
+		"Ankle_L": Vector2(-75,365),
+		"Ankle_R": Vector2(75,365)
 	}
 	var pieces: Array[Dictionary] = [
 		{"name":"head","bone":"Head","pivot":Vector2(180,220)},
 		{"name":"torso","bone":"Torso","pivot":Vector2(180,260)},
-		{"name":"arm_l","bone":"Shoulder_L","pivot":Vector2(80,250)},
-		{"name":"arm_r","bone":"Shoulder_R","pivot":Vector2(290,250)},
+		{"name":"upper_arm_l","bone":"Shoulder_L","pivot":Vector2(80,250)},
+		{"name":"forearm_l","bone":"Elbow_L","pivot":Vector2(50,420)},
+		{"name":"upper_arm_r","bone":"Shoulder_R","pivot":Vector2(290,250)},
+		{"name":"forearm_r","bone":"Elbow_R","pivot":Vector2(330,420)},
 		{"name":"thigh_l","bone":"Hip_L","pivot":Vector2(125,520)},
 		{"name":"thigh_r","bone":"Hip_R","pivot":Vector2(245,520)},
 		{"name":"shin_l","bone":"Knee_L","pivot":Vector2(125,820)},
-		{"name":"shin_r","bone":"Knee_R","pivot":Vector2(245,820)}
+		{"name":"shin_r","bone":"Knee_R","pivot":Vector2(245,820)},
+		{"name":"foot_l","bone":"Ankle_L","pivot":Vector2(125,1190)},
+		{"name":"foot_r","bone":"Ankle_R","pivot":Vector2(245,1190)}
 	]
 	for piece in pieces:
 		var texture := load("res://assets/jia_%s.png" % piece.name) as Texture2D
