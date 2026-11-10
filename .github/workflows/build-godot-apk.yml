@@ -110,11 +110,11 @@ jobs:
           # Do not hide res://android from Godot: the exporter checks the Gradle template through res://.
           rm -f godot/android/.gdignore
           test -s godot/android/build/build.gradle
-          test -s godot/android/build/.build_version
+          test -s godot/android/.build_version
           test -s godot/android/build/settings.gradle
           test -d godot/android/build/gradle
           echo "Installed Gradle template version:"
-          cat godot/android/build/.build_version
+          cat godot/android/.build_version
           ls -la godot/android/build | head -40
 
       - name: Validate project scripts and Android preset
