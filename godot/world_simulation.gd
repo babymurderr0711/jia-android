@@ -64,6 +64,8 @@ func advance_minute() -> void:
 	if minutes >= DAY_MINUTES:
 		minutes = 0
 		day += 1
+		social_actions_today = 0
+		event_rewards_today = 0
 	# Needs evolve slowly and depend on time of day.
 	hunger = clampf(hunger - 0.012, MIN_NEED, MAX_NEED)
 	energy = clampf(energy - (0.008 if minutes < 420 or minutes > 1320 else 0.003), MIN_NEED, MAX_NEED)
@@ -154,7 +156,7 @@ func touch_response(zone: String) -> Dictionary:
 	affection = clampf(affection + float(result.affection), 0.0, 100.0)
 	mood = clampf(mood + float(result.mood), 0.0, 100.0)
 	energy = clampf(energy - 0.5, 0.0, 100.0)
-	_register_social_action()
+	register_social_action()
 	relationship_changed.emit(relationship_stage(), affection)
 	return result
 
@@ -164,7 +166,7 @@ func relationship_stage() -> String:
 	if affection >= 45.0: return "Дружба"
 	return "Знакомство"
 
-func _register_social_action() -> void:
+func register_social_action() -> void:
 	if last_social_day != day:
 		last_social_day = day
 		social_actions_today = 0
@@ -219,7 +221,7 @@ func load_world() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return
-	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","last_reward_day","music_enabled","music_volume","sfx_enabled","inventory"]:
+	for key in ["minutes","day","mood","energy","hunger","hygiene","comfort","affection","coins","outfit_id","nail_style","toe_style","last_reward_day","last_social_day","social_actions_today","event_rewards_today","music_enabled","music_volume","sfx_enabled","inventory"]:
 		if cfg.has_section_key("world", key):
 			set(key, cfg.get_value("world", key))
 	if cfg.has_section_key("world", "completed_events"):
