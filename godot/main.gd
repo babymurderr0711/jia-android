@@ -42,6 +42,12 @@ var pose_editor := false
 var arm_pose := 0.0
 var leg_pose := 0.0
 var interaction_target := "none"
+var massage_selector_open := false
+var massage_kind := ""
+var massage_idle_clock := 0.0
+var initiative_clock := 18.0
+var massage_hand_position := Vector2(360, 610)
+var massage_last_position := Vector2.ZERO
 var interaction_pulse := 0.0
 var hand_reach := 0.0
 var joint_sway := 0.0
@@ -147,6 +153,10 @@ func _process(delta: float) -> void:
 			action_text = "Мне нравится, когда ты рядом ♡"
 	if massage_progress > 0:
 		massage_progress = maxf(0.0, massage_progress - delta * 0.035)
+	initiative_clock -= delta
+	if initiative_clock <= 0.0 and not shop_open and not settings_open and not massage_selector_open and interaction_target == "none" and not rhythm_active:
+		initiative_clock = randf_range(24.0, 42.0)
+		_initiative_action()
 	if rhythm_active:
 		rhythm_window -= delta
 		rhythm_cooldown -= delta
@@ -406,11 +416,21 @@ func _draw_ui() -> void:
 	var nav := ["Образ", "Ногти", "Педикюр", "Ритм ♡", "Магазин"]
 	for i in range(5):
 		_button(Rect2(18 + i * 140, 890, 130, 76), nav[i])
+	if massage_selector_open:
+		_panel(Rect2(325, 330, 375, 445))
+		draw_string(ThemeDB.fallback_font, Vector2(350, 370), "Выбери массаж ♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, PALE)
+		_button(Rect2(350, 390, 320, 64), "Стопы · мягкие круговые движения")
+		_button(Rect2(350, 465, 320, 64), "Плечи и спина · разминание")
+		_button(Rect2(350, 540, 320, 64), "Кисти рук · лёгкий массаж")
+		_button(Rect2(350, 615, 320, 64), "Ноги · расслабляющие движения")
+		_button(Rect2(350, 690, 320, 58), "Назад")
+	if interaction_target != "none":
+		_draw_massage_scene()
 	if shop_open:
 		_panel(Rect2(325, 285, 375, 475))
 		draw_string(ThemeDB.fallback_font, Vector2(350, 330), "Маленький магазин ♡", HORIZONTAL_ALIGNMENT_LEFT, -1, 25, PALE)
 		draw_string(ThemeDB.fallback_font, Vector2(350, 365), "Чай %d · Перекус %d · Цветы %d" % [int(JiaWorld.inventory.get("tea", 0)), int(JiaWorld.inventory.get("snack", 0)), int(JiaWorld.inventory.get("gift_flower", 0))], HORIZONTAL_ALIGNMENT_LEFT, 340, 17, PALE)
-		_button(Rect2(350, 395, 325, 58), "Забрать ежедневный бонус · +25")
+		_button(Rect2(350, 395, 325, 58), "Забрать ежедневный бонус · +50")
 		_button(Rect2(350, 465, 325, 58), "Купить чай · 8 монет")
 		_button(Rect2(350, 535, 325, 58), "Купить перекус · 12 монет")
 		_button(Rect2(350, 605, 325, 58), "Купить цветы · 30 монет")
@@ -479,14 +499,14 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag:
 		dragging = true
 		if interaction_target != "none":
-			massage_progress = clampf(massage_progress + event.relative.length() / 700.0, 0.0, 1.0)
+			var point := _to_design(event.position)
+			massage_hand_position = point
+			var distance := event.relative.length()
+			massage_progress = clampf(massage_progress + distance / 950.0, 0.0, 1.0)
 			interaction_pulse = 0.5
-			mood = minf(100.0, mood + 0.03)
+			JiaWorld.mood = minf(100.0, JiaWorld.mood + 0.025)
 			if massage_progress >= 0.95:
-				interaction_target = "none"
-				dragging = false
-				action_text = "Мне стало легче, спасибо ♡"
-				_react(4.0)
+				_finish_massage()
 	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and interaction_target != "none":
 		massage_progress = clampf(massage_progress + event.relative.length() / 700.0, 0.0, 1.0)
 		interaction_pulse = 0.5
@@ -524,6 +544,26 @@ func _handle_tap(pos: Vector2) -> void:
 		elif Rect2(380, 685, 290, 42).has_point(pos):
 			settings_open = false
 		return
+	if massage_selector_open:
+		if Rect2(350, 390, 320, 64).has_point(pos):
+			_begin_massage("feet")
+		elif Rect2(350, 465, 320, 64).has_point(pos):
+			_begin_massage("shoulders")
+		elif Rect2(350, 540, 320, 64).has_point(pos):
+			_begin_massage("hands")
+		elif Rect2(350, 615, 320, 64).has_point(pos):
+			_begin_massage("legs")
+		elif Rect2(350, 690, 320, 58).has_point(pos):
+			massage_selector_open = false
+		queue_redraw()
+		return
+	if interaction_target != "none":
+		if Rect2(520, 820, 175, 55).has_point(pos):
+			interaction_target = "none"
+			massage_progress = 0.0
+			massage_kind = ""
+			return
+		return
 	if shop_open:
 		if Rect2(350, 395, 325, 58).has_point(pos):
 			if JiaWorld.claim_daily_reward():
@@ -556,7 +596,7 @@ func _handle_tap(pos: Vector2) -> void:
 		var idx := int((pos.y - 380) / 88)
 		match idx:
 			0: _next_pose()
-			1: _start_massage()
+			1: massage_selector_open = true
 			2:
 				if JiaWorld.consume("tea"):
 					action_text = "Чай согрел меня. Спасибо ♡"
@@ -654,18 +694,91 @@ func _change_pedicure() -> void:
 	_react(3.0)
 
 func _start_massage() -> void:
-	character_rig.play_gesture("reach", 1.6)
-	expression = "soft"
-	JiaWorld.touch_response("body")
-	expression_timer = 3.0
+	massage_selector_open = true
+	queue_redraw()
+
+func _begin_massage(kind: String) -> void:
+	massage_selector_open = false
+	massage_kind = kind
 	massage_progress = 0.0
-	interaction_target = "body"
+	interaction_target = kind
 	dragging = false
-	action_text = "Проводи пальцем по контуру, чтобы сделать массаж ♡"
-	JiaWorld.energy = minf(100.0, JiaWorld.energy + 1.0)
-	JiaWorld.mood = minf(100.0, JiaWorld.mood + 4.0)
-	JiaWorld.affection = minf(100.0, JiaWorld.affection + 1.0)
+	massage_hand_position = Vector2(360, 610)
+	massage_last_position = massage_hand_position
+	character_rig.play_gesture("reach", 2.0)
+	expression = "soft"
+	expression_timer = 30.0
+	var lines := {"feet":"Проводи пальцем по стопам мягкими кругами ♡","shoulders":"Веди пальцем вдоль плеч и спины ♡","hands":"Мягко проведи по кистям и пальцам ♡","legs":"Проводи вверх и вниз по ногам ♡"}
+	action_text = lines[kind]
+	queue_redraw()
+
+func _finish_massage() -> void:
+	interaction_target = "none"
+	dragging = false
+	JiaWorld.mood = minf(100.0, JiaWorld.mood + 9.0)
+	JiaWorld.energy = minf(100.0, JiaWorld.energy + 5.0)
+	JiaWorld.affection = minf(100.0, JiaWorld.affection + 3.0)
+	JiaWorld.comfort = minf(100.0, JiaWorld.comfort + 12.0)
+	massage_progress = 0.0
+	character_rig.play_gesture("shy", 2.2)
+	expression = "shy"
+	expression_timer = 3.0
+	action_text = "М-м… так хорошо. Спасибо за заботу ♡"
 	_sync_world_state()
+	JiaWorld.save_world()
+
+func _initiative_action() -> void:
+	var choices := ["talk", "wave", "sleepy", "shy"]
+	match choices[randi() % choices.size()]:
+		"talk":
+			action_text = ["Эй, побудь со мной немного? ♡","Мне хочется рассказать тебе кое-что","Как ты там? Я слушаю"][randi() % 3]
+			expression = "happy"
+			character_rig.play_gesture("reach", 1.8)
+		"wave":
+			action_text = "Пс-с… привет ещё раз! ♡"
+			expression = "shy"
+			character_rig.play_gesture("wave", 2.0)
+		"sleepy":
+			action_text = "Немного зеваю… но рада, что ты здесь ♡"
+			expression = "sleepy"
+			character_rig.play_gesture("rest", 2.5)
+		"shy":
+			action_text = "Поймала твой взгляд и улыбнулась ♡"
+			expression = "shy"
+			character_rig.play_gesture("shy", 1.8)
+	expression_timer = 3.5
+	action_timer = 6.0
+	queue_redraw()
+
+func _draw_massage_scene() -> void:
+	_panel(Rect2(28, 285, 455, 475))
+	var title := {"feet":"Массаж стоп","shoulders":"Массаж плеч и спины","hands":"Массаж рук","legs":"Массаж ног"}.get(massage_kind, "Массаж")
+	draw_string(ThemeDB.fallback_font, Vector2(52, 330), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, PALE)
+	draw_string(ThemeDB.fallback_font, Vector2(52, 366), "Веди пальцем по отмеченной области", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, PALE)
+	var region := Rect2(90, 405, 320, 245)
+	draw_rect(region, Color("#4b3048"), true, 18.0)
+	var center := region.get_center()
+	match massage_kind:
+		"feet":
+			draw_ellipse(center + Vector2(-55, 0), Vector2(35, 82), SKIN)
+			draw_ellipse(center + Vector2(55, 0), Vector2(35, 82), SKIN)
+		"shoulders":
+			draw_circle(center + Vector2(0,-35), 34, SKIN)
+			draw_colored_polygon(PackedVector2Array([center+Vector2(-100,-30),center+Vector2(100,-30),center+Vector2(75,90),center+Vector2(-75,90)]), SKIN)
+			draw_arc(center+Vector2(0,10), 90, PI, TAU, 32, PALE, 4.0)
+		"hands":
+			for side in [-1,1]:
+				draw_line(center+Vector2(side*65,55),center+Vector2(side*65,-30),SKIN,24,true)
+				for f in range(5): draw_line(center+Vector2(side*65+(f-2)*8,-25),center+Vector2(side*65+(f-2)*11,-90),SKIN,7,true)
+		"legs":
+			draw_line(center+Vector2(-55,-95),center+Vector2(-65,95),SKIN,36,true)
+			draw_line(center+Vector2(55,-95),center+Vector2(65,95),SKIN,36,true)
+	var hand := massage_hand_position + Vector2(sin(time_passed*8.0)*4.0, cos(time_passed*8.0)*4.0)
+	draw_circle(hand, 17, Color("#f4c2d9"))
+	draw_circle(hand, 8, PINK)
+	draw_rect(Rect2(52, 680, 400, 16), Color("#241827"), true, 8.0)
+	draw_rect(Rect2(52, 680, 400.0*massage_progress, 16), PINK, true, 8.0)
+	_button(Rect2(520, 820, 175, 55), "Закончить")
 
 func _buy_item(item_id: String) -> void:
 	if JiaWorld.purchase_item(item_id):
