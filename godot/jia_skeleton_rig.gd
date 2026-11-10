@@ -174,24 +174,24 @@ func _install_art_cutouts() -> void:
 	for node in skeleton.find_children("*", "Line2D", true, false):
 		(node as CanvasItem).visible = false
 	var origins: Dictionary = {
-		"Head": Vector2(0,-115),
-		"Torso": Vector2(0,20),
-		"Shoulder_L": Vector2(-48,-45),
-		"Elbow_L": Vector2(-102,25),
-		"Wrist_L": Vector2(-137,100),
-		"Shoulder_R": Vector2(48,-45),
-		"Elbow_R": Vector2(102,25),
-		"Wrist_R": Vector2(137,100),
-		"Hip_L": Vector2(-35,145),
-		"Hip_R": Vector2(35,145),
-		"Knee_L": Vector2(-63,260),
-		"Knee_R": Vector2(63,260),
-		"Ankle_L": Vector2(-75,365),
-		"Ankle_R": Vector2(75,365)
+		"Head": Vector2(-4.2,-115.06),
+		"Torso": Vector2(-4.2,20.6),
+		"Shoulder_L": Vector2(-46.2,-55.0),
+		"Elbow_L": Vector2(-58.8,16.4),
+		"Wrist_L": Vector2(-69.3,113.0),
+		"Shoulder_R": Vector2(42.0,-55.0),
+		"Elbow_R": Vector2(58.8,16.4),
+		"Wrist_R": Vector2(67.2,113.0),
+		"Hip_L": Vector2(-29.4,58.4),
+		"Hip_R": Vector2(25.2,58.4),
+		"Knee_L": Vector2(-21.0,184.4),
+		"Knee_R": Vector2(21.0,184.4),
+		"Ankle_L": Vector2(-21.0,335.6),
+		"Ankle_R": Vector2(23.1,335.6)
 	}
 	var pieces: Array[Dictionary] = [
-		{"name":"head","bone":"Head","pivot":Vector2(180,220)},
-		{"name":"torso","bone":"Torso","pivot":Vector2(180,260)},
+		{"name":"head","bone":"Head","pivot":Vector2(180,107)},
+		{"name":"torso","bone":"Torso","pivot":Vector2(180,430)},
 		{"name":"upper_arm_l","bone":"Shoulder_L","pivot":Vector2(80,250)},
 		{"name":"forearm_l","bone":"Elbow_L","pivot":Vector2(50,420)},
 		{"name":"upper_arm_r","bone":"Shoulder_R","pivot":Vector2(290,250)},
