@@ -1,6 +1,6 @@
 from pathlib import Path
 from urllib.request import urlretrieve
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageChops
 
 URL = "https://d2ol7oe51mr4n9.cloudfront.net/user_3KVjsYRNFpU20FJN3DkQrjG4WtZ/a0f83349-0ea9-4a7c-845e-f1d7805eb619.png"
 root = Path(__file__).resolve().parent
@@ -43,6 +43,8 @@ for name, polygon in masks.items():
     ImageDraw.Draw(mask).polygon(polygon, fill=255)
     # Feather only a tiny amount to avoid hard cut seams while preserving pixel-art edges.
     layer = front.copy()
-    layer.putalpha(Image.eval(mask, lambda value: value))
+    # Intersect the body-part mask with the source transparency. Never turn
+    # transparent background pixels opaque inside a polygon.
+    layer.putalpha(ImageChops.multiply(front.getchannel("A"), mask))
     layer.save(assets / f"jia_{name}.png", optimize=True)
 print("Prepared registered cutouts:", ", ".join(masks))
