@@ -13,3 +13,7 @@ Open this folder in Godot 4.3+ and run Main.tscn.
 
 ## Next production pass
 Replace the procedural articulated placeholder with the approved layered character artwork and a Skeleton2D rig. Keep the same state/actions API so cosmetics and poses continue to drive the live model.
+
+
+## Android CI export
+The Android Gradle template is installed by the repository workflow into `android/build`. Keep this directory visible to Godot's `res://` filesystem; do not add `android/.gdignore`, because the Android exporter checks `res://android/build/build.gradle`.
