@@ -30,7 +30,7 @@ jobs:
           unzip -q /tmp/templates.tpz -d /tmp/godot-templates
           cp /tmp/godot-templates/templates/* "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
           test -s "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_debug.apk"
-          test -s "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_release.apk"
+          test -s "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip"
 
           mkdir -p "$HOME/.android"
           keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
@@ -38,6 +38,8 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           set -o pipefail
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/platforms/android-33"
+          test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/33.0.2"
 
           JAVA_BIN="$(readlink -f "$(command -v java)")"
           JAVA_HOME_DIR="$(dirname "$(dirname "$JAVA_BIN")")"
@@ -59,9 +61,10 @@ jobs:
           set -euxo pipefail
           SOURCE_TEMPLATE="$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip"
           test -s "$SOURCE_TEMPLATE"
-          mkdir -p godot/android/build
-          unzip -q -o "$SOURCE_TEMPLATE" -d godot/android/build
-          test -s godot/android/build/build.gradle
+          mkdir -p godot/android
+          unzip -q -o "$SOURCE_TEMPLATE" -d godot/android
+          test -s godot/android/build.gradle
+          test -s godot/android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Validate project scripts and Android preset
         shell: bash
@@ -69,10 +72,7 @@ jobs:
           set -euxo pipefail
           godot --headless --path godot --editor --quit --verbose
           godot --headless --path godot --quit-after 3
-          godot --headless --path godot --verbose --export-debug "Android" /tmp/Jia-Place-validation.apk || {
-            echo "::error::Godot rejected the Android export preset. Full verbose output above."
-            exit 1
-          }
+          godot --headless --path godot --verbose --export-debug "Android" /tmp/Jia-Place-validation.apk
           test -s /tmp/Jia-Place-validation.apk
 
       - name: Export Android APK
