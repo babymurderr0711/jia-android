@@ -40,13 +40,15 @@ func _run_tests() -> void:
 	await process_frame
 	_check(rig.bones.size() >= 18, "skeleton contains full joint hierarchy")
 	var art_sprites := rig.skeleton.find_children("JiaArt_*", "Sprite2D", true, false)
-	_check(art_sprites.size() == 12, "all twelve painted body cutouts attach to the rig")
+	_check(art_sprites.size() == 14, "all fourteen painted body cutouts attach to the rig")
 	for sprite_node in art_sprites:
 		var art_sprite := sprite_node as Sprite2D
 		_check(art_sprite.texture != null, "painted cutout texture is loaded: " + art_sprite.name)
 	_check((rig.bones["Shoulder_L"] as Bone2D).get_node_or_null("JiaArt_upper_arm_l") != null, "left upper arm follows shoulder bone")
 	_check((rig.bones["Elbow_L"] as Bone2D).get_node_or_null("JiaArt_forearm_l") != null, "left forearm follows elbow bone")
 	_check((rig.bones["Elbow_R"] as Bone2D).get_node_or_null("JiaArt_forearm_r") != null, "right forearm follows elbow bone")
+	_check((rig.bones["Wrist_L"] as Bone2D).get_node_or_null("JiaArt_hand_l") != null, "left hand follows wrist bone")
+	_check((rig.bones["Wrist_R"] as Bone2D).get_node_or_null("JiaArt_hand_r") != null, "right hand follows wrist bone")
 	_check((rig.bones["Knee_L"] as Bone2D).get_node_or_null("JiaArt_shin_l") != null, "left shin follows knee bone")
 	_check((rig.bones["Ankle_R"] as Bone2D).get_node_or_null("JiaArt_foot_r") != null, "right foot follows ankle bone")
 	rig.set_pose(3)
