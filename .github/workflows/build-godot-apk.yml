@@ -75,6 +75,9 @@ jobs:
           set -euxo pipefail
           godot --headless --path godot --editor --quit --verbose
           godot --headless --path godot --quit-after 3
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           godot --headless --path godot --verbose --export-debug "Android" /tmp/Jia-Place-validation.apk
           test -s /tmp/Jia-Place-validation.apk
 
@@ -83,6 +86,9 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p build
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           godot --verbose --headless --path godot --export-debug "Android" "$PWD/build/Jia-Place-debug.apk"
           test -s build/Jia-Place-debug.apk
 
