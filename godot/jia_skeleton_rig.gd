@@ -1,8 +1,8 @@
 extends Node2D
 class_name JiaSkeletonRig
 
-# Procedural articulated fallback rig. The approved painted artwork will replace
-# these vector surfaces once its hidden anatomy and cutout layers are integrated.
+# Articulated Skeleton2D rig using approved painted cutout layers.
+# Body regions are attached to their corresponding joint bones.
 const SKIN := Color("#e99a83")
 const HAIR := Color("#a83f2d")
 const INK := Color("#21131e")
@@ -219,7 +219,18 @@ func _install_art_cutouts() -> void:
 		sprite.position = (root_point - origins[bone_name]) / 0.42
 		sprite.scale = Vector2(0.42,0.42)
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		sprite.z_index = 30
+		# Back-to-front order keeps limbs visible over the torso at joints.
+		match piece.name:
+			"thigh_l", "thigh_r", "shin_l", "shin_r", "foot_l", "foot_r":
+				sprite.z_index = 20
+			"torso":
+				sprite.z_index = 22
+			"upper_arm_l", "upper_arm_r":
+				sprite.z_index = 24
+			"forearm_l", "forearm_r":
+				sprite.z_index = 26
+			"head":
+				sprite.z_index = 28
 		(bones[bone_name] as Bone2D).add_child(sprite)
 
 
