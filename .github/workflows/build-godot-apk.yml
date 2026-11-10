@@ -71,6 +71,12 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
+      - name: Import Godot project resources and global classes
+        shell: bash
+        run: |
+          set -euxo pipefail
+          godot --headless --path godot --editor --quit
+
       - name: Install project Android Gradle build template
         shell: bash
         run: |
