@@ -154,7 +154,7 @@ func claim_daily_reward() -> bool:
 	if last_reward_day >= day:
 		return false
 	last_reward_day = day
-	coins += 25
+	coins += 50
 	inventory["snack"] = int(inventory.get("snack", 0)) + 1
 	inventory["tea"] = int(inventory.get("tea", 0)) + 1
 	mood = clampf(mood + 4.0, 0.0, 100.0)
