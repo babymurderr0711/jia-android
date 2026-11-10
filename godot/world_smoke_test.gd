@@ -44,11 +44,18 @@ func _run_tests() -> void:
 	for sprite_node in art_sprites:
 		var art_sprite := sprite_node as Sprite2D
 		_check(art_sprite.texture != null, "painted cutout texture is loaded: " + art_sprite.name)
+	_check((rig.bones["Shoulder_L"] as Bone2D).get_node_or_null("JiaArt_upper_arm_l") != null, "left upper arm follows shoulder bone")
 	_check((rig.bones["Elbow_L"] as Bone2D).get_node_or_null("JiaArt_forearm_l") != null, "left forearm follows elbow bone")
+	_check((rig.bones["Elbow_R"] as Bone2D).get_node_or_null("JiaArt_forearm_r") != null, "right forearm follows elbow bone")
+	_check((rig.bones["Knee_L"] as Bone2D).get_node_or_null("JiaArt_shin_l") != null, "left shin follows knee bone")
 	_check((rig.bones["Ankle_R"] as Bone2D).get_node_or_null("JiaArt_foot_r") != null, "right foot follows ankle bone")
-	rig.set_pose(2)
+	rig.set_pose(3)
 	rig.set_appearance(Color("#5b1c38"), 2, 3, "shy", 1)
 	await process_frame
-	_check(rig.pose == 2, "skeleton accepts a pose transition")
+	_check(rig.pose == 3, "skeleton accepts a pose transition")
+	_check(absf((rig.bones["Root"] as Bone2D).rotation) > 0.001, "pose animates the root bone")
+	for bone_name in rig.bones:
+		var bone := rig.bones[bone_name] as Bone2D
+		_check(is_finite(bone.rotation), "bone rotation remains finite: " + str(bone_name))
 	print("WORLD AND RIG TESTS PASSED")
 	quit(0)
