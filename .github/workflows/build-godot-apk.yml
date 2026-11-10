@@ -41,8 +41,9 @@ jobs:
           set +o pipefail
           yes | sdkmanager --licenses >/dev/null || true
           set -o pipefail
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;33.0.2" "build-tools;35.0.0" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/platforms/android-35"
+          test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/33.0.2"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/build-tools/35.0.0"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/ndk/23.2.8568313"
           test -d "${ANDROID_HOME:-/usr/lib/android-sdk}/cmake/3.10.2.4988404"
@@ -55,6 +56,8 @@ jobs:
           export JAVA_HOME="$JAVA_HOME_DIR"
           test -x "$ANDROID_SDK_DIR/platform-tools/adb"
           test -f "$ANDROID_SDK_DIR/platforms/android-35/android.jar"
+          test -x "$ANDROID_SDK_DIR/build-tools/33.0.2/zipalign"
+          test -x "$ANDROID_SDK_DIR/build-tools/33.0.2/apksigner"
           test -x "$ANDROID_SDK_DIR/build-tools/35.0.0/zipalign"
           test -x "$ANDROID_SDK_DIR/build-tools/35.0.0/apksigner"
           test -x "$JAVA_HOME_DIR/bin/javac"
