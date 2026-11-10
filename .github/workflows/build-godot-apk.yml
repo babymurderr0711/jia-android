@@ -61,10 +61,11 @@ jobs:
           set -euxo pipefail
           SOURCE_TEMPLATE="$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip"
           test -s "$SOURCE_TEMPLATE"
-          mkdir -p godot/android
-          unzip -q -o "$SOURCE_TEMPLATE" -d godot/android
-          test -s godot/android/build.gradle
-          test -s godot/android/gradle/wrapper/gradle-wrapper.properties
+          mkdir -p godot/android/build
+          unzip -q -o "$SOURCE_TEMPLATE" -d godot/android/build
+          test -s godot/android/build/build.gradle
+          test -s godot/android/build/gradle/wrapper/gradle-wrapper.properties
+          test -s godot/android/build/settings.gradle
 
       - name: Validate project scripts and Android preset
         shell: bash
