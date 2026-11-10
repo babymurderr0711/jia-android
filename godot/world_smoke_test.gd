@@ -20,10 +20,17 @@ func _run_tests() -> void:
 	var old_affection: float = world.affection
 	world.touch_response("head")
 	_check(world.affection > old_affection, "touch grows affection")
+	_check(world.social_actions_today > 0, "social actions are tracked per day")
+	_check(world.relationship_dialogue().size() >= 3, "relationship stage supplies dialogue variants")
 	world.set_outfit("midnight_blue")
 	world.set_nails(2, 3)
 	_check(world.outfit_id == "midnight_blue", "outfit selection persists in state")
 	_check(world.nail_style == 2 and world.toe_style == 3, "nail styles update")
+	world.active_event = "tea_time"
+	var old_coins: int = world.coins
+	world.complete_event()
+	_check(world.coins == old_coins + 5, "scheduled event grants its reward")
+	_check(world.active_event.is_empty(), "scheduled event closes after completion")
 	var old_minutes: int = world.minutes
 	world.rest(30)
 	_check(world.minutes == posmod(old_minutes + 30, 1440), "rest advances in-game time")
@@ -33,6 +40,7 @@ func _run_tests() -> void:
 	await process_frame
 	_check(clone.outfit_id == "midnight_blue", "outfit survives save/load")
 	_check(clone.nail_style == 2 and clone.toe_style == 3, "nail styles survive save/load")
+	_check(clone.relationship_dialogue().size() >= 3, "relationship dialogue remains available after load")
 	_check(clone.music_enabled == world.music_enabled, "music preference survives save/load")
 	var rig_scene: PackedScene = load("res://JiaSkeletonRig.tscn")
 	var rig: JiaSkeletonRig = rig_scene.instantiate() as JiaSkeletonRig
