@@ -12,6 +12,11 @@ var skeleton: Skeleton2D
 var bones: Dictionary = {}
 var clock := 0.0
 var pose := 0
+var pose_blend_speed := 4.8
+var gesture := "none"
+var gesture_time := 0.0
+var gesture_strength := 0.0
+var secondary_motion := 0.0
 var expression := "soft"
 var manicure := 0
 var pedicure := 0
@@ -31,11 +36,37 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	clock += delta
-	_animate_bones()
+	if gesture_time > 0.0:
+		gesture_time = maxf(0.0, gesture_time - delta)
+	gesture_strength = move_toward(gesture_strength, 1.0 if gesture_time > 0.0 else 0.0, delta * 2.8)
+	secondary_motion = sin(clock * 1.7) * 0.025 + sin(clock * 0.83) * 0.012
+	_animate_bones(delta)
 	queue_redraw()
 
 func set_pose(value: int) -> void:
 	pose = posmod(value, 5)
+
+func play_gesture(name: String, duration: float = 1.8) -> void:
+	gesture = name
+	gesture_time = maxf(0.25, duration)
+
+func _gesture_offset(bone_name: String) -> float:
+	var amount := gesture_strength
+	match gesture:
+		"wave":
+			if bone_name == "Shoulder_R": return -0.72 * amount
+			if bone_name == "Elbow_R": return -0.9 * amount + sin(clock * 12.0) * 0.16 * amount
+			if bone_name == "Wrist_R": return sin(clock * 12.0) * 0.48 * amount
+		"reach":
+			if bone_name == "Shoulder_R": return -0.42 * amount
+			if bone_name == "Elbow_R": return -0.55 * amount
+		"shy":
+			if bone_name == "Head": return -0.16 * amount
+			if bone_name == "Shoulder_L": return 0.24 * amount
+			if bone_name == "Shoulder_R": return -0.24 * amount
+		"rest":
+			if bone_name == "Head": return 0.08 * amount
+	return 0.0
 
 func set_appearance(outfit: Color, hands: int, feet: int, face: String, outfit_style: int = 0) -> void:
 	outfit_color = outfit
@@ -260,7 +291,7 @@ func _ellipse(center: Vector2, radius: Vector2) -> PackedVector2Array:
 		points.append(center + Vector2(cos(angle)*radius.x,sin(angle)*radius.y))
 	return points
 
-func _animate_bones() -> void:
+func _animate_bones(delta: float) -> void:
 	_update_face()
 	var breath := sin(clock * 1.55)
 	var idle_sway := sin(clock * 0.72)
@@ -275,12 +306,14 @@ func _animate_bones() -> void:
 	for key in targets:
 		var target: float = targets[key]
 		if key == "Torso":
-			target += breath * 0.018
+			target += breath * 0.018 + secondary_motion
 		elif key == "Head":
 			target += idle_sway * 0.025
 		elif key == "Shoulder_L":
 			target += sin(clock * 1.1) * 0.025
 		elif key == "Shoulder_R":
 			target -= sin(clock * 1.1 + 0.4) * 0.025
+		target += _gesture_offset(str(key))
 		var bone: Bone2D = bones[key]
-		bone.rotation = lerp_angle(bone.rotation, target, 0.055)
+		var blend := 1.0 - exp(-pose_blend_speed * delta)
+		bone.rotation = lerp_angle(bone.rotation, target, blend)
